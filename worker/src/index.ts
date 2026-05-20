@@ -152,30 +152,39 @@ export default {
         const body = await request.json() as {
           date?: string;
           description?: string;
+          calories?: number;
         };
 
         if (!body.date || !body.description) {
           return errorResponse('date and description are required', 400);
         }
 
-        if (!env.ANTHROPIC_API_KEY) {
-          return errorResponse(
-            'ANTHROPIC_API_KEY not configured. Please set it in wrangler.toml',
-            500
-          );
-        }
-
         let calorieResult: ClaudeCalorieResult;
-        try {
-          calorieResult = await estimateCalories(
-            body.description,
-            env.ANTHROPIC_API_KEY
-          );
-        } catch (err) {
-          return errorResponse(
-            `Failed to estimate calories: ${err instanceof Error ? err.message : String(err)}`,
-            500
-          );
+
+        if (typeof body.calories === 'number') {
+          // Activity entry: calories provided directly, no Claude API call needed
+          calorieResult = {
+            totalCalories: body.calories,
+            items: [],
+          };
+        } else {
+          if (!env.ANTHROPIC_API_KEY) {
+            return errorResponse(
+              'ANTHROPIC_API_KEY not configured. Please set it in wrangler.toml',
+              500
+            );
+          }
+          try {
+            calorieResult = await estimateCalories(
+              body.description,
+              env.ANTHROPIC_API_KEY
+            );
+          } catch (err) {
+            return errorResponse(
+              `Failed to estimate calories: ${err instanceof Error ? err.message : String(err)}`,
+              500
+            );
+          }
         }
 
         const itemsJson = JSON.stringify(calorieResult.items);

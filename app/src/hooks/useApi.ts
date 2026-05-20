@@ -53,6 +53,13 @@ export function useApi() {
     });
   }
 
+  function addActivity(date: string, description: string, calories: number): Promise<Meal> {
+    return request<Meal>('/api/meals', {
+      method: 'POST',
+      body: JSON.stringify({ date, description, calories: -Math.abs(calories) }),
+    });
+  }
+
   function deleteMeal(id: number): Promise<{ success: boolean; id: number }> {
     return request<{ success: boolean; id: number }>(`/api/meals/${id}`, {
       method: 'DELETE',
@@ -65,6 +72,7 @@ export function useApi() {
     getMeals,
     getMealsRange,
     addMeal,
+    addActivity,
     deleteMeal,
   };
 }

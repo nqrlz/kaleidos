@@ -5,6 +5,7 @@ import { useApi } from '../hooks/useApi';
 import { Meal, Settings } from '../types';
 import PieChart from './PieChart';
 import MealInput from './MealInput';
+import ActivityInput from './ActivityInput';
 
 interface DayViewProps {
   date: string; // YYYY-MM-DD
@@ -122,47 +123,67 @@ export default function DayView({ date, settings }: DayViewProps) {
 
       {/* Meals list */}
       <h2 style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--text-lg)' }}>
-        Mahlzeiten ({meals.length})
+        Mahlzeiten & Aktivitäten ({meals.length})
       </h2>
 
       {meals.length === 0 ? (
-        <div className="empty-state">Noch keine Mahlzeiten eingetragen.</div>
+        <div className="empty-state">Noch keine Einträge für heute.</div>
       ) : (
         <div>
-          {meals.map((meal) => (
-            <div key={meal.id} className="meal-card">
-              <div className="meal-card__header">
-                <div className="meal-card__description" title={meal.description}>
-                  {meal.description}
-                </div>
-                <span className="meal-card__calories">{meal.calories} kcal</span>
-                <button
-                  className="nb-btn nb-btn-danger nb-btn-sm"
-                  onClick={() => handleDelete(meal.id)}
-                  disabled={deletingId === meal.id}
-                  type="button"
+          {meals.map((meal) => {
+            const isActivity = meal.calories < 0;
+            return (
+              <div
+                key={meal.id}
+                className="meal-card"
+                style={isActivity ? { borderColor: 'var(--color-success)' } : undefined}
+              >
+                <div
+                  className="meal-card__header"
+                  style={isActivity ? { background: '#F0FDF4' } : undefined}
                 >
-                  {deletingId === meal.id ? '...' : 'Löschen'}
-                </button>
-              </div>
-              {meal.items.length > 0 && (
-                <div className="meal-card__items">
-                  {meal.items.map((item, i) => (
-                    <div key={i} className="meal-item">
-                      <span>{item.name}</span>
-                      <span className="meal-item__calories">{item.calories} kcal</span>
-                    </div>
-                  ))}
+                  <div className="meal-card__description" title={meal.description}>
+                    {isActivity && (
+                      <span style={{ color: 'var(--color-success)', marginRight: 6 }}>⚡</span>
+                    )}
+                    {meal.description}
+                  </div>
+                  <span
+                    className="meal-card__calories"
+                    style={isActivity ? { background: '#16A34A', color: 'white', borderColor: '#16A34A' } : undefined}
+                  >
+                    {isActivity ? `−${Math.abs(meal.calories)}` : meal.calories} kcal
+                  </span>
+                  <button
+                    className="nb-btn nb-btn-danger nb-btn-sm"
+                    onClick={() => handleDelete(meal.id)}
+                    disabled={deletingId === meal.id}
+                    type="button"
+                  >
+                    {deletingId === meal.id ? '...' : 'Löschen'}
+                  </button>
                 </div>
-              )}
-            </div>
-          ))}
+                {meal.items.length > 0 && (
+                  <div className="meal-card__items">
+                    {meal.items.map((item, i) => (
+                      <div key={i} className="meal-item">
+                        <span>{item.name}</span>
+                        <span className="meal-item__calories">{item.calories} kcal</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Meal input - only for today */}
       {isTodayDate && (
-        <MealInput date={date} onMealAdded={handleMealAdded} />
+        <>
+          <MealInput date={date} onMealAdded={handleMealAdded} />
+          <ActivityInput date={date} onActivityAdded={handleMealAdded} />
+        </>
       )}
     </div>
   );
