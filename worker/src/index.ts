@@ -1,0 +1,270 @@
+export interface Env {
+  DB: D1Database;
+  ANTHROPIC_API_KEY: string;
+}
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+};
+
+function corsResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      ...CORS_HEADERS,
+    },
+  });
+}
+
+function errorResponse(message: string, status = 500): Response {
+  return corsResponse({ error: message }, status);
+}
+
+interface ClaudeItem {
+  name: string;
+  calories: number;
+}
+
+interface ClaudeCalorieResult {
+  totalCalories: number;
+  items: ClaudeItem[];
+}
+
+async function estimateCalories(
+  description: string,
+  apiKey: string
+): Promise<ClaudeCalorieResult> {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: `You are a nutritionist assistant. Given a meal description, estimate the calories for each item and return ONLY valid JSON with no additional text.
+
+Meal description: "${description}"
+
+Return this exact JSON structure:
+{
+  "totalCalories": <number>,
+  "items": [
+    {"name": "<item name>", "calories": <number>},
+    ...
+  ]
+}
+
+Be realistic with calorie estimates. Return only the JSON object, nothing else.`,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json() as {
+    content: Array<{ type: string; text: string }>;
+  };
+
+  const text = data.content[0].text.trim();
+
+  // Extract JSON from the response (handle potential markdown code blocks)
+  let jsonText = text;
+  const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (jsonMatch) {
+    jsonText = jsonMatch[1].trim();
+  }
+
+  const result = JSON.parse(jsonText) as ClaudeCalorieResult;
+  return result;
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    const method = request.method;
+
+    // Handle CORS preflight
+    if (method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    try {
+      // GET /api/settings
+      if (method === 'GET' && path === '/api/settings') {
+        const result = await env.DB.prepare(
+          'SELECT * FROM settings WHERE id = 1'
+        ).first();
+
+        if (!result) {
+          // Initialize default settings
+          await env.DB.prepare(
+            'INSERT OR IGNORE INTO settings (id, daily_calories, deficit) VALUES (1, 2000, 500)'
+          ).run();
+          return corsResponse({ id: 1, daily_calories: 2000, deficit: 500 });
+        }
+
+        return corsResponse(result);
+      }
+
+      // PUT /api/settings
+      if (method === 'PUT' && path === '/api/settings') {
+        const body = await request.json() as {
+          daily_calories?: number;
+          deficit?: number;
+        };
+
+        if (
+          body.daily_calories === undefined ||
+          body.deficit === undefined
+        ) {
+          return errorResponse('daily_calories and deficit are required', 400);
+        }
+
+        await env.DB.prepare(
+          'UPDATE settings SET daily_calories = ?, deficit = ? WHERE id = 1'
+        )
+          .bind(body.daily_calories, body.deficit)
+          .run();
+
+        return corsResponse({
+          id: 1,
+          daily_calories: body.daily_calories,
+          deficit: body.deficit,
+        });
+      }
+
+      // POST /api/meals
+      if (method === 'POST' && path === '/api/meals') {
+        const body = await request.json() as {
+          date?: string;
+          description?: string;
+        };
+
+        if (!body.date || !body.description) {
+          return errorResponse('date and description are required', 400);
+        }
+
+        if (!env.ANTHROPIC_API_KEY) {
+          return errorResponse(
+            'ANTHROPIC_API_KEY not configured. Please set it in wrangler.toml',
+            500
+          );
+        }
+
+        let calorieResult: ClaudeCalorieResult;
+        try {
+          calorieResult = await estimateCalories(
+            body.description,
+            env.ANTHROPIC_API_KEY
+          );
+        } catch (err) {
+          return errorResponse(
+            `Failed to estimate calories: ${err instanceof Error ? err.message : String(err)}`,
+            500
+          );
+        }
+
+        const itemsJson = JSON.stringify(calorieResult.items);
+
+        const insertResult = await env.DB.prepare(
+          `INSERT INTO meals (date, description, calories, items, created_at)
+           VALUES (?, ?, ?, ?, datetime('now'))
+           RETURNING *`
+        )
+          .bind(
+            body.date,
+            body.description,
+            calorieResult.totalCalories,
+            itemsJson
+          )
+          .first();
+
+        if (!insertResult) {
+          return errorResponse('Failed to insert meal', 500);
+        }
+
+        return corsResponse({
+          ...insertResult,
+          items: calorieResult.items,
+        }, 201);
+      }
+
+      // GET /api/meals
+      if (method === 'GET' && path === '/api/meals') {
+        const date = url.searchParams.get('date');
+        const start = url.searchParams.get('start');
+        const end = url.searchParams.get('end');
+
+        let results: D1Result<Record<string, unknown>>;
+
+        if (date) {
+          results = await env.DB.prepare(
+            'SELECT * FROM meals WHERE date = ? ORDER BY created_at ASC'
+          )
+            .bind(date)
+            .all();
+        } else if (start && end) {
+          results = await env.DB.prepare(
+            'SELECT * FROM meals WHERE date >= ? AND date <= ? ORDER BY date ASC, created_at ASC'
+          )
+            .bind(start, end)
+            .all();
+        } else {
+          return errorResponse(
+            'Either date or start+end parameters are required',
+            400
+          );
+        }
+
+        const meals = results.results.map((meal) => ({
+          ...meal,
+          items: JSON.parse(meal.items as string) as ClaudeItem[],
+        }));
+
+        return corsResponse(meals);
+      }
+
+      // DELETE /api/meals/:id
+      const deleteMatch = path.match(/^\/api\/meals\/(\d+)$/);
+      if (method === 'DELETE' && deleteMatch) {
+        const id = parseInt(deleteMatch[1], 10);
+
+        const existing = await env.DB.prepare(
+          'SELECT id FROM meals WHERE id = ?'
+        )
+          .bind(id)
+          .first();
+
+        if (!existing) {
+          return errorResponse('Meal not found', 404);
+        }
+
+        await env.DB.prepare('DELETE FROM meals WHERE id = ?').bind(id).run();
+
+        return corsResponse({ success: true, id });
+      }
+
+      return errorResponse('Not found', 404);
+    } catch (err) {
+      console.error('Worker error:', err);
+      return errorResponse(
+        `Internal server error: ${err instanceof Error ? err.message : String(err)}`,
+        500
+      );
+    }
+  },
+};
