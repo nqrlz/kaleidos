@@ -2,13 +2,25 @@ import { Meal, Settings } from '../types';
 
 const BASE_URL = import.meta.env.VITE_API_URL || '';
 
-async function request<T>(
-  path: string,
-  options?: RequestInit
-): Promise<T> {
+function getProfileId(): string {
+  const key = 'kaleidos_profile_id';
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
+export function getStoredProfileId(): string {
+  return getProfileId();
+}
+
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      'x-profile-id': getProfileId(),
       ...options?.headers,
     },
     ...options,

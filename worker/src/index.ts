@@ -6,7 +6,7 @@ export interface Env {
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+  'Access-Control-Allow-Headers': 'Content-Type, x-api-key, x-profile-id',
 };
 
 function corsResponse(body: unknown, status = 200): Response {
@@ -102,19 +102,23 @@ export default {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
+    const profileId = request.headers.get('x-profile-id');
+    if (!profileId) {
+      return errorResponse('x-profile-id header is required', 400);
+    }
+
     try {
       // GET /api/settings
       if (method === 'GET' && path === '/api/settings') {
         const result = await env.DB.prepare(
-          'SELECT * FROM settings WHERE id = 1'
-        ).first();
+          'SELECT * FROM settings WHERE profile_id = ?'
+        ).bind(profileId).first();
 
         if (!result) {
-          // Initialize default settings
           await env.DB.prepare(
-            'INSERT OR IGNORE INTO settings (id, daily_calories, deficit) VALUES (1, 2000, 500)'
-          ).run();
-          return corsResponse({ id: 1, daily_calories: 2000, deficit: 500 });
+            'INSERT INTO settings (profile_id, daily_calories, deficit) VALUES (?, 2000, 500)'
+          ).bind(profileId).run();
+          return corsResponse({ profile_id: profileId, daily_calories: 2000, deficit: 500 });
         }
 
         return corsResponse(result);
@@ -127,24 +131,15 @@ export default {
           deficit?: number;
         };
 
-        if (
-          body.daily_calories === undefined ||
-          body.deficit === undefined
-        ) {
+        if (body.daily_calories === undefined || body.deficit === undefined) {
           return errorResponse('daily_calories and deficit are required', 400);
         }
 
         await env.DB.prepare(
-          'UPDATE settings SET daily_calories = ?, deficit = ? WHERE id = 1'
-        )
-          .bind(body.daily_calories, body.deficit)
-          .run();
+          'INSERT INTO settings (profile_id, daily_calories, deficit) VALUES (?, ?, ?) ON CONFLICT(profile_id) DO UPDATE SET daily_calories = excluded.daily_calories, deficit = excluded.deficit'
+        ).bind(profileId, body.daily_calories, body.deficit).run();
 
-        return corsResponse({
-          id: 1,
-          daily_calories: body.daily_calories,
-          deficit: body.deficit,
-        });
+        return corsResponse({ profile_id: profileId, daily_calories: body.daily_calories, deficit: body.deficit });
       }
 
       // POST /api/meals
@@ -162,27 +157,16 @@ export default {
         let calorieResult: ClaudeCalorieResult;
 
         if (typeof body.calories === 'number') {
-          // Activity entry: calories provided directly, no Claude API call needed
-          calorieResult = {
-            totalCalories: body.calories,
-            items: [],
-          };
+          calorieResult = { totalCalories: body.calories, items: [] };
         } else {
           if (!env.ANTHROPIC_API_KEY) {
-            return errorResponse(
-              'ANTHROPIC_API_KEY not configured. Please set it in wrangler.toml',
-              500
-            );
+            return errorResponse('ANTHROPIC_API_KEY not configured. Please set it in wrangler.toml', 500);
           }
           try {
-            calorieResult = await estimateCalories(
-              body.description,
-              env.ANTHROPIC_API_KEY
-            );
+            calorieResult = await estimateCalories(body.description, env.ANTHROPIC_API_KEY);
           } catch (err) {
             return errorResponse(
-              `Failed to estimate calories: ${err instanceof Error ? err.message : String(err)}`,
-              500
+              `Failed to estimate calories: ${err instanceof Error ? err.message : String(err)}`, 500
             );
           }
         }
@@ -190,26 +174,16 @@ export default {
         const itemsJson = JSON.stringify(calorieResult.items);
 
         const insertResult = await env.DB.prepare(
-          `INSERT INTO meals (date, description, calories, items, created_at)
-           VALUES (?, ?, ?, ?, datetime('now'))
+          `INSERT INTO meals (profile_id, date, description, calories, items, created_at)
+           VALUES (?, ?, ?, ?, ?, datetime('now'))
            RETURNING *`
-        )
-          .bind(
-            body.date,
-            body.description,
-            calorieResult.totalCalories,
-            itemsJson
-          )
-          .first();
+        ).bind(profileId, body.date, body.description, calorieResult.totalCalories, itemsJson).first();
 
         if (!insertResult) {
           return errorResponse('Failed to insert meal', 500);
         }
 
-        return corsResponse({
-          ...insertResult,
-          items: calorieResult.items,
-        }, 201);
+        return corsResponse({ ...insertResult, items: calorieResult.items }, 201);
       }
 
       // GET /api/meals
@@ -222,21 +196,14 @@ export default {
 
         if (date) {
           results = await env.DB.prepare(
-            'SELECT * FROM meals WHERE date = ? ORDER BY created_at ASC'
-          )
-            .bind(date)
-            .all();
+            'SELECT * FROM meals WHERE profile_id = ? AND date = ? ORDER BY created_at ASC'
+          ).bind(profileId, date).all();
         } else if (start && end) {
           results = await env.DB.prepare(
-            'SELECT * FROM meals WHERE date >= ? AND date <= ? ORDER BY date ASC, created_at ASC'
-          )
-            .bind(start, end)
-            .all();
+            'SELECT * FROM meals WHERE profile_id = ? AND date >= ? AND date <= ? ORDER BY date ASC, created_at ASC'
+          ).bind(profileId, start, end).all();
         } else {
-          return errorResponse(
-            'Either date or start+end parameters are required',
-            400
-          );
+          return errorResponse('Either date or start+end parameters are required', 400);
         }
 
         const meals = results.results.map((meal) => ({
@@ -253,16 +220,14 @@ export default {
         const id = parseInt(deleteMatch[1], 10);
 
         const existing = await env.DB.prepare(
-          'SELECT id FROM meals WHERE id = ?'
-        )
-          .bind(id)
-          .first();
+          'SELECT id FROM meals WHERE id = ? AND profile_id = ?'
+        ).bind(id, profileId).first();
 
         if (!existing) {
           return errorResponse('Meal not found', 404);
         }
 
-        await env.DB.prepare('DELETE FROM meals WHERE id = ?').bind(id).run();
+        await env.DB.prepare('DELETE FROM meals WHERE id = ? AND profile_id = ?').bind(id, profileId).run();
 
         return corsResponse({ success: true, id });
       }

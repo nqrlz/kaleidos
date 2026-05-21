@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useApi } from '../hooks/useApi';
+import { useApi, getStoredProfileId } from '../hooks/useApi';
 import { Settings as SettingsType } from '../types';
 
 interface SettingsProps {
@@ -14,8 +14,24 @@ export default function Settings({ settings, onSettingsUpdate }: SettingsProps) 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [importId, setImportId] = useState('');
+  const profileId = getStoredProfileId();
 
   const targetCalories = dailyCalories - deficit;
+
+  function handleCopyId() {
+    navigator.clipboard.writeText(profileId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleImportId() {
+    const trimmed = importId.trim();
+    if (!trimmed) return;
+    localStorage.setItem('kaleidos_profile_id', trimmed);
+    window.location.reload();
+  }
 
   // Sync if parent settings change
   useEffect(() => {
@@ -149,6 +165,53 @@ export default function Settings({ settings, onSettingsUpdate }: SettingsProps) 
           </button>
         </div>
       </form>
+
+      {/* Profile ID */}
+      <div className="settings-note" style={{ borderColor: 'var(--color-secondary)', marginBottom: 'var(--space-4)' }}>
+        <div className="settings-note__title">Meine Profil-ID</div>
+        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-muted)', marginBottom: 'var(--space-3)' }}>
+          Deine Daten sind anonym und nur mit dieser ID zugänglich. Teile sie mit niemandem — oder gib sie auf einem anderen Gerät ein, um deine Daten dort zu nutzen.
+        </p>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <code style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--text-xs)',
+            background: 'var(--color-text)',
+            color: 'var(--color-primary)',
+            padding: 'var(--space-2) var(--space-3)',
+            flex: 1,
+            wordBreak: 'break-all',
+          }}>
+            {profileId}
+          </code>
+          <button className="nb-btn nb-btn-secondary nb-btn-sm" onClick={handleCopyId} type="button">
+            {copied ? '✓ Kopiert' : 'Kopieren'}
+          </button>
+        </div>
+
+        <div style={{ marginTop: 'var(--space-4)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-3)' }}>
+          <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, marginBottom: 'var(--space-2)' }}>
+            Profil-ID importieren (anderes Gerät)
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <input
+              type="text"
+              className="nb-input"
+              placeholder="Profil-ID einfügen…"
+              value={importId}
+              onChange={(e) => setImportId(e.target.value)}
+            />
+            <button
+              className="nb-btn nb-btn-secondary"
+              onClick={handleImportId}
+              type="button"
+              disabled={!importId.trim()}
+            >
+              Importieren
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* API Key note */}
       <div className="settings-note">
