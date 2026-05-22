@@ -66,8 +66,8 @@ Be realistic with calorie estimates. Return only the JSON object, nothing else.`
   });
 
   let lastError = '';
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, Math.min(attempt * 3000, 12000)));
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -101,7 +101,7 @@ Be realistic with calorie estimates. Return only the JSON object, nothing else.`
     return JSON.parse(jsonText) as ClaudeCalorieResult;
   }
 
-  throw new Error(`Claude API ist momentan überlastet. Bitte in 10–20 Sekunden erneut versuchen. (${lastError})`);
+  throw new Error(`Claude API ist momentan überlastet. Bitte in 30 Sekunden erneut versuchen. (${lastError})`);
 }
 
 export default {

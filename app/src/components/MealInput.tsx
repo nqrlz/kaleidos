@@ -12,7 +12,7 @@ async function compressImage(file: File): Promise<{ base64: string; mediaType: s
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
-      const MAX = 1024;
+      const MAX = 768;
       const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
       canvas.width = Math.round(img.width * scale);
@@ -20,7 +20,7 @@ async function compressImage(file: File): Promise<{ base64: string; mediaType: s
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
-      const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+      const base64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
       resolve({ base64, mediaType: 'image/jpeg' });
     };
     img.onerror = reject;
