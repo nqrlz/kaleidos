@@ -59,40 +59,49 @@ Be realistic with calorie estimates. Return only the JSON object, nothing else.`
       ]
     : `Given this meal description: "${description}"\n\n${prompt}`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: userContent }],
-    }),
+  const body = JSON.stringify({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: userContent }],
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+  let lastError = '';
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body,
+    });
+
+    if (response.status === 529 || response.status === 529) {
+      lastError = `Claude API overloaded (attempt ${attempt + 1}/3)`;
+      continue;
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json() as {
+      content: Array<{ type: string; text: string }>;
+    };
+
+    const text = data.content[0].text.trim();
+    let jsonText = text;
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) jsonText = jsonMatch[1].trim();
+
+    return JSON.parse(jsonText) as ClaudeCalorieResult;
   }
 
-  const data = await response.json() as {
-    content: Array<{ type: string; text: string }>;
-  };
-
-  const text = data.content[0].text.trim();
-
-  // Extract JSON from the response (handle potential markdown code blocks)
-  let jsonText = text;
-  const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (jsonMatch) {
-    jsonText = jsonMatch[1].trim();
-  }
-
-  const result = JSON.parse(jsonText) as ClaudeCalorieResult;
-  return result;
+  throw new Error(`Claude API ist momentan überlastet. Bitte in 10–20 Sekunden erneut versuchen. (${lastError})`);
 }
 
 export default {
