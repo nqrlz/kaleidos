@@ -60,7 +60,7 @@ Be realistic with calorie estimates. Return only the JSON object, nothing else.`
     : `Given this meal description: "${description}"\n\n${prompt}`;
 
   const body = JSON.stringify({
-    model: imageBase64 ? 'claude-opus-4-5' : 'claude-haiku-4-5-20251001',
+    model: imageBase64 ? 'claude-3-5-sonnet-20241022' : 'claude-haiku-4-5-20251001',
     max_tokens: 1024,
     messages: [{ role: 'user', content: userContent }],
   });
@@ -81,9 +81,10 @@ Be realistic with calorie estimates. Return only the JSON object, nothing else.`
 
     if (!response.ok) {
       const errorText = await response.text();
-      if (response.status === 529 || response.status === 503 || response.status === 500) {
+      const isOverloaded = response.status === 529 || response.status === 503 ||
+        errorText.includes('overloaded_error');
+      if (isOverloaded) {
         lastError = `status ${response.status} (attempt ${attempt + 1}/5)`;
-        console.error(`Claude API overloaded, retrying: attempt ${attempt + 1}, status ${response.status}`);
         continue;
       }
       throw new Error(`Claude API error: ${response.status} - ${errorText}`);

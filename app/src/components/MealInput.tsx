@@ -12,7 +12,7 @@ async function compressImage(file: File): Promise<{ base64: string; mediaType: s
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
-      const MAX = 768;
+      const MAX = 512;
       const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
       canvas.width = Math.round(img.width * scale);
