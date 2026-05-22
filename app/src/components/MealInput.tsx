@@ -32,7 +32,14 @@ type Mode = 'text' | 'image';
 
 export default function MealInput({ date, onMealAdded }: MealInputProps) {
   const api = useApi();
-  const [mode, setMode] = useState<Mode>('text');
+  const [mode, setMode] = useState<Mode>(
+    () => (localStorage.getItem('kaleidos_input_mode') as Mode | null) ?? 'text'
+  );
+
+  function switchMode(m: Mode) {
+    setMode(m);
+    localStorage.setItem('kaleidos_input_mode', m);
+  }
   const [description, setDescription] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -92,7 +99,7 @@ export default function MealInput({ date, onMealAdded }: MealInputProps) {
         <div style={{ display: 'flex', gap: 0 }}>
           <button
             type="button"
-            onClick={() => setMode('text')}
+            onClick={() => switchMode('text')}
             className="nb-btn nb-btn-sm"
             style={{ background: mode === 'text' ? 'var(--color-text)' : 'var(--color-surface)', color: mode === 'text' ? 'var(--color-primary)' : 'var(--color-text)', boxShadow: 'none' }}
           >
@@ -100,7 +107,7 @@ export default function MealInput({ date, onMealAdded }: MealInputProps) {
           </button>
           <button
             type="button"
-            onClick={() => setMode('image')}
+            onClick={() => switchMode('image')}
             className="nb-btn nb-btn-sm"
             style={{ background: mode === 'image' ? 'var(--color-text)' : 'var(--color-surface)', color: mode === 'image' ? 'var(--color-primary)' : 'var(--color-text)', borderLeft: 'none', boxShadow: 'none' }}
           >
