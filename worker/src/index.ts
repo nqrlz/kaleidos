@@ -60,7 +60,7 @@ Be realistic with calorie estimates. Return only the JSON object, nothing else.`
     : `Given this meal description: "${description}"\n\n${prompt}`;
 
   const body = JSON.stringify({
-    model: imageBase64 ? 'claude-3-5-sonnet-20241022' : 'claude-haiku-4-5-20251001',
+    model: imageBase64 ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
     max_tokens: 1024,
     messages: [{ role: 'user', content: userContent }],
   });
