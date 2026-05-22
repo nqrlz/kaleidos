@@ -35,24 +35,11 @@ interface ClaudeCalorieResult {
 
 async function estimateCalories(
   description: string,
-  apiKey: string
+  apiKey: string,
+  imageBase64?: string,
+  mediaType?: string,
 ): Promise<ClaudeCalorieResult> {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: `You are a nutritionist assistant. Given a meal description, estimate the calories for each item and return ONLY valid JSON with no additional text.
-
-Meal description: "${description}"
+  const prompt = `You are a nutritionist assistant. Estimate the calories and return ONLY valid JSON with no additional text.
 
 Return this exact JSON structure:
 {
@@ -63,9 +50,26 @@ Return this exact JSON structure:
   ]
 }
 
-Be realistic with calorie estimates. Return only the JSON object, nothing else.`,
-        },
-      ],
+Be realistic with calorie estimates. Return only the JSON object, nothing else.`;
+
+  const userContent = imageBase64 && mediaType
+    ? [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
+        { type: 'text', text: `Analyze this food photo and estimate the calories for each visible item.\n\n${prompt}` },
+      ]
+    : `Given this meal description: "${description}"\n\n${prompt}`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: userContent }],
     }),
   });
 
@@ -148,6 +152,8 @@ export default {
           date?: string;
           description?: string;
           calories?: number;
+          imageBase64?: string;
+          mediaType?: string;
         };
 
         if (!body.date || !body.description) {
@@ -163,7 +169,7 @@ export default {
             return errorResponse('ANTHROPIC_API_KEY not configured. Please set it in wrangler.toml', 500);
           }
           try {
-            calorieResult = await estimateCalories(body.description, env.ANTHROPIC_API_KEY);
+            calorieResult = await estimateCalories(body.description, env.ANTHROPIC_API_KEY, body.imageBase64, body.mediaType);
           } catch (err) {
             return errorResponse(
               `Failed to estimate calories: ${err instanceof Error ? err.message : String(err)}`, 500
@@ -172,12 +178,16 @@ export default {
         }
 
         const itemsJson = JSON.stringify(calorieResult.items);
+        // For image-based entries, use the first detected item as description
+        const finalDescription = body.imageBase64 && calorieResult.items.length > 0
+          ? calorieResult.items.map(i => i.name).join(', ')
+          : body.description;
 
         const insertResult = await env.DB.prepare(
           `INSERT INTO meals (profile_id, date, description, calories, items, created_at)
            VALUES (?, ?, ?, ?, ?, datetime('now'))
            RETURNING *`
-        ).bind(profileId, body.date, body.description, calorieResult.totalCalories, itemsJson).first();
+        ).bind(profileId, body.date, finalDescription, calorieResult.totalCalories, itemsJson).first();
 
         if (!insertResult) {
           return errorResponse('Failed to insert meal', 500);

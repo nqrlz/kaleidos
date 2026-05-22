@@ -65,6 +65,13 @@ export function useApi() {
     });
   }
 
+  function addMealFromImage(date: string, imageBase64: string, mediaType: string): Promise<Meal> {
+    return request<Meal>('/api/meals', {
+      method: 'POST',
+      body: JSON.stringify({ date, description: 'Foto-Analyse', imageBase64, mediaType }),
+    });
+  }
+
   function addActivity(date: string, description: string, calories: number): Promise<Meal> {
     return request<Meal>('/api/meals', {
       method: 'POST',
@@ -84,6 +91,7 @@ export function useApi() {
     getMeals,
     getMealsRange,
     addMeal,
+    addMealFromImage,
     addActivity,
     deleteMeal,
   };

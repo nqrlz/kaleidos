@@ -121,8 +121,15 @@ export default function DayView({ date, settings }: DayViewProps) {
         <PieChart consumed={totalCalories} target={targetCalories} label="Tagesübersicht" />
       </div>
 
+      {isTodayDate && (
+        <>
+          <MealInput date={date} onMealAdded={handleMealAdded} />
+          <ActivityInput date={date} onActivityAdded={handleMealAdded} />
+        </>
+      )}
+
       {/* Meals list */}
-      <h2 style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--text-lg)' }}>
+      <h2 style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--text-lg)', marginTop: 'var(--space-6)' }}>
         Mahlzeiten & Aktivitäten ({meals.length})
       </h2>
 
@@ -177,13 +184,6 @@ export default function DayView({ date, settings }: DayViewProps) {
             );
           })}
         </div>
-      )}
-
-      {isTodayDate && (
-        <>
-          <MealInput date={date} onMealAdded={handleMealAdded} />
-          <ActivityInput date={date} onActivityAdded={handleMealAdded} />
-        </>
       )}
     </div>
   );
