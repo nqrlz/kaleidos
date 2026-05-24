@@ -8,7 +8,7 @@ import { useApi } from './hooks/useApi';
 import type { Settings as SettingsType } from './types';
 import { format } from 'date-fns';
 
-const DEFAULT_SETTINGS: SettingsType = { daily_calories: 2000, deficit: 500 };
+const DEFAULT_SETTINGS: SettingsType = { daily_calories: 2000, deficit: 500, protein_goal: 150 };
 
 export default function App() {
   const api = useApi();
