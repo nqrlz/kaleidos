@@ -130,38 +130,43 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
       </div>
 
       {/* Stats row */}
-      <div className="stats-grid" style={{ marginBottom: activityCalories > 0 ? 'var(--space-2)' : 'var(--space-4)' }}>
-        <div className="stat-box">
-          <div className="stat-box__label">Gegessen</div>
-          <div className="stat-box__value">
-            {foodCalories}
-            <span className="stat-box__unit">kcal</span>
+      {activityCalories > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
+          <div className="stat-box">
+            <div className="stat-box__label">Gegessen</div>
+            <div className="stat-box__value">{foodCalories}<span className="stat-box__unit">kcal</span></div>
+          </div>
+          <div className="stat-box" style={{ borderColor: 'var(--color-success)' }}>
+            <div className="stat-box__label">⚡ Sport</div>
+            <div className="stat-box__value" style={{ color: 'var(--color-success)' }}>−{activityCalories}<span className="stat-box__unit">kcal</span></div>
+          </div>
+          <div className="stat-box" style={{ background: 'var(--color-primary)' }}>
+            <div className="stat-box__label">Budget</div>
+            <div className="stat-box__value">{targetCalories + activityCalories}<span className="stat-box__unit">kcal</span></div>
+          </div>
+          <div className="stat-box" style={{ background: remainingCalories < 0 ? '#FEE2E2' : undefined }}>
+            <div className="stat-box__label">Verbleibend</div>
+            <div className="stat-box__value" style={{ color: remainingCalories < 0 ? 'var(--color-danger)' : undefined }}>
+              {remainingCalories}<span className="stat-box__unit">kcal</span>
+            </div>
           </div>
         </div>
-        <div className="stat-box">
-          <div className="stat-box__label">Tagesziel</div>
-          <div className="stat-box__value">
-            {targetCalories}
-            <span className="stat-box__unit">kcal</span>
+      ) : (
+        <div className="stats-grid" style={{ marginBottom: 'var(--space-4)' }}>
+          <div className="stat-box">
+            <div className="stat-box__label">Gegessen</div>
+            <div className="stat-box__value">{foodCalories}<span className="stat-box__unit">kcal</span></div>
           </div>
-        </div>
-        <div className="stat-box" style={{ background: remainingCalories < 0 ? '#FEE2E2' : undefined }}>
-          <div className="stat-box__label">Verbleibend</div>
-          <div
-            className="stat-box__value"
-            style={{ color: remainingCalories < 0 ? 'var(--color-danger)' : undefined }}
-          >
-            {remainingCalories}
-            <span className="stat-box__unit">kcal</span>
+          <div className="stat-box">
+            <div className="stat-box__label">Tagesziel</div>
+            <div className="stat-box__value">{targetCalories}<span className="stat-box__unit">kcal</span></div>
           </div>
-        </div>
-      </div>
-
-      {activityCalories > 0 && (
-        <div style={{ display: 'flex', gap: 'var(--space-3)', fontSize: 'var(--text-xs)', fontWeight: 700, padding: 'var(--space-2) var(--space-1)', marginBottom: 'var(--space-2)', color: 'var(--color-muted)' }}>
-          <span style={{ color: 'var(--color-success)' }}>⚡ Sport −{activityCalories} kcal</span>
-          <span>→</span>
-          <span>Netto {netCalories} kcal</span>
+          <div className="stat-box" style={{ background: remainingCalories < 0 ? '#FEE2E2' : undefined }}>
+            <div className="stat-box__label">Verbleibend</div>
+            <div className="stat-box__value" style={{ color: remainingCalories < 0 ? 'var(--color-danger)' : undefined }}>
+              {remainingCalories}<span className="stat-box__unit">kcal</span>
+            </div>
+          </div>
         </div>
       )}
 
