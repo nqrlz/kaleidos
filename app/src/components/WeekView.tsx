@@ -15,6 +15,7 @@ import PieChart from './PieChart';
 
 interface WeekViewProps {
   settings: Settings;
+  onDaySelect: (date: string) => void;
 }
 
 interface DayStats {
@@ -22,7 +23,7 @@ interface DayStats {
   calories: number;
 }
 
-export default function WeekView({ settings }: WeekViewProps) {
+export default function WeekView({ settings, onDaySelect }: WeekViewProps) {
   const api = useApi();
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -144,6 +145,8 @@ export default function WeekView({ settings }: WeekViewProps) {
             <div
               key={stats.date}
               className={`week-day-card${today ? ' week-day-card--today' : ''}`}
+              onClick={() => onDaySelect(stats.date)}
+              style={{ cursor: 'pointer' }}
             >
               <div className="week-day-card__name">
                 {format(day, 'EEE', { locale: de })}
@@ -186,12 +189,14 @@ export default function WeekView({ settings }: WeekViewProps) {
             <div
               key={dateStr}
               className="nb-card-white"
+              onClick={() => onDaySelect(dateStr)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-3)',
                 padding: 'var(--space-3) var(--space-4)',
                 background: today ? '#FFFBEB' : undefined,
+                cursor: 'pointer',
               }}
             >
               <div style={{ minWidth: 80 }}>

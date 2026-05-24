@@ -51,7 +51,7 @@ export default function App() {
       case 'heute':
         return <DayView date={viewDate} settings={settings} onDateChange={setViewDate} />;
       case 'woche':
-        return <WeekView settings={settings} />;
+        return <WeekView settings={settings} onDaySelect={(d) => { setViewDate(d); setActiveTab('heute'); }} />;
       case 'monat':
         return <MonthView settings={settings} />;
       case 'einstellungen':
