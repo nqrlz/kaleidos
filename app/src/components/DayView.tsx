@@ -6,6 +6,7 @@ import { Meal, Settings } from '../types';
 import PieChart from './PieChart';
 import MealInput from './MealInput';
 import ActivityInput from './ActivityInput';
+import BarcodeInput from './BarcodeInput';
 
 interface DayViewProps {
   date: string; // YYYY-MM-DD
@@ -192,6 +193,7 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
       </div>
 
       <MealInput date={date} onMealAdded={handleMealAdded} />
+      <BarcodeInput date={date} onMealAdded={handleMealAdded} />
       <ActivityInput date={date} onActivityAdded={handleMealAdded} />
 
       {/* Meals list */}

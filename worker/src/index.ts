@@ -47,6 +47,8 @@ async function estimateCalories(
 ): Promise<ClaudeCalorieResult> {
   const prompt = `You are a nutritionist assistant. Estimate the calories and macronutrients, return ONLY valid JSON with no additional text.
 
+IMPORTANT: If the user explicitly states specific calorie or macro values (e.g. "117 kcal", "30g Kohlenhydrate", "25g Protein"), use those EXACT values. Do not override explicitly stated nutritional data.
+
 Return this exact JSON structure:
 {
   "totalCalories": <number>,
@@ -174,6 +176,9 @@ export default {
           date?: string;
           description?: string;
           calories?: number;
+          protein?: number;
+          carbs?: number;
+          fat?: number;
           imageBase64?: string;
           mediaType?: string;
         };
@@ -185,7 +190,7 @@ export default {
         let calorieResult: ClaudeCalorieResult;
 
         if (typeof body.calories === 'number') {
-          calorieResult = { totalCalories: body.calories, totalProtein: 0, totalCarbs: 0, totalFat: 0, items: [] };
+          calorieResult = { totalCalories: body.calories, totalProtein: body.protein ?? 0, totalCarbs: body.carbs ?? 0, totalFat: body.fat ?? 0, items: [] };
         } else {
           if (!env.ANTHROPIC_API_KEY) {
             return errorResponse('ANTHROPIC_API_KEY not configured. Please set it in wrangler.toml', 500);

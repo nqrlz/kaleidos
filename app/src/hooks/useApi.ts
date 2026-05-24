@@ -72,6 +72,13 @@ export function useApi() {
     });
   }
 
+  function addMealManual(date: string, description: string, calories: number, protein: number, carbs: number, fat: number): Promise<Meal> {
+    return request<Meal>('/api/meals', {
+      method: 'POST',
+      body: JSON.stringify({ date, description, calories, protein, carbs, fat }),
+    });
+  }
+
   function addActivity(date: string, description: string, calories: number): Promise<Meal> {
     return request<Meal>('/api/meals', {
       method: 'POST',
@@ -99,6 +106,7 @@ export function useApi() {
     getMealsRange,
     addMeal,
     addMealFromImage,
+    addMealManual,
     addActivity,
     updateMeal,
     deleteMeal,
