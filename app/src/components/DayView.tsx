@@ -25,8 +25,10 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
   const [savingId, setSavingId] = useState<number | null>(null);
 
   const targetCalories = settings.daily_calories - settings.deficit;
-  const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0);
-  const remainingCalories = targetCalories - totalCalories;
+  const foodCalories = meals.filter(m => m.calories > 0).reduce((sum, m) => sum + m.calories, 0);
+  const activityCalories = Math.abs(meals.filter(m => m.calories < 0).reduce((sum, m) => sum + m.calories, 0));
+  const netCalories = foodCalories - activityCalories;
+  const remainingCalories = targetCalories - netCalories;
   const totalProtein = Math.round(meals.reduce((sum, m) => sum + (m.protein || 0), 0));
   const totalCarbs = Math.round(meals.reduce((sum, m) => sum + (m.carbs || 0), 0));
   const totalFat = Math.round(meals.reduce((sum, m) => sum + (m.fat || 0), 0));
@@ -128,11 +130,11 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
       </div>
 
       {/* Stats row */}
-      <div className="stats-grid" style={{ marginBottom: 'var(--space-4)' }}>
+      <div className="stats-grid" style={{ marginBottom: activityCalories > 0 ? 'var(--space-2)' : 'var(--space-4)' }}>
         <div className="stat-box">
-          <div className="stat-box__label">Verbraucht</div>
+          <div className="stat-box__label">Gegessen</div>
           <div className="stat-box__value">
-            {totalCalories}
+            {foodCalories}
             <span className="stat-box__unit">kcal</span>
           </div>
         </div>
@@ -155,11 +157,19 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
         </div>
       </div>
 
+      {activityCalories > 0 && (
+        <div style={{ display: 'flex', gap: 'var(--space-3)', fontSize: 'var(--text-xs)', fontWeight: 700, padding: 'var(--space-2) var(--space-1)', marginBottom: 'var(--space-2)', color: 'var(--color-muted)' }}>
+          <span style={{ color: 'var(--color-success)' }}>⚡ Sport −{activityCalories} kcal</span>
+          <span>→</span>
+          <span>Netto {netCalories} kcal</span>
+        </div>
+      )}
+
       {/* Progress bar */}
       <div className="stats-bar" style={{ marginBottom: 'var(--space-4)' }}>
         <div
-          className={`stats-bar__fill${totalCalories > targetCalories ? ' stats-bar__fill--over' : ''}`}
-          style={{ width: `${Math.min(100, (totalCalories / Math.max(1, targetCalories)) * 100)}%` }}
+          className={`stats-bar__fill${netCalories > targetCalories ? ' stats-bar__fill--over' : ''}`}
+          style={{ width: `${Math.min(100, (netCalories / Math.max(1, targetCalories)) * 100)}%` }}
         />
       </div>
 
@@ -189,7 +199,7 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
 
       {/* Pie chart */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-6)' }}>
-        <PieChart consumed={totalCalories} target={targetCalories} label="Tagesübersicht" />
+        <PieChart consumed={netCalories} target={targetCalories} label="Tagesübersicht" />
       </div>
 
       <MealInput date={date} onMealAdded={handleMealAdded} />
