@@ -79,6 +79,13 @@ export function useApi() {
     });
   }
 
+  function updateMeal(id: number, data: { description?: string; calories?: number; protein?: number; carbs?: number; fat?: number }): Promise<Meal> {
+    return request<Meal>(`/api/meals/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
   function deleteMeal(id: number): Promise<{ success: boolean; id: number }> {
     return request<{ success: boolean; id: number }>(`/api/meals/${id}`, {
       method: 'DELETE',
@@ -93,6 +100,7 @@ export function useApi() {
     addMeal,
     addMealFromImage,
     addActivity,
+    updateMeal,
     deleteMeal,
   };
 }

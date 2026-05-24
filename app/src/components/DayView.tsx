@@ -19,6 +19,9 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ description: '', calories: 0, protein: 0, carbs: 0, fat: 0 });
+  const [savingId, setSavingId] = useState<number | null>(null);
 
   const targetCalories = settings.daily_calories - settings.deficit;
   const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0);
@@ -58,6 +61,24 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
   useEffect(() => {
     fetchMeals();
   }, [fetchMeals]);
+
+  function startEdit(meal: Meal) {
+    setEditingId(meal.id);
+    setEditForm({ description: meal.description, calories: meal.calories, protein: meal.protein || 0, carbs: meal.carbs || 0, fat: meal.fat || 0 });
+  }
+
+  async function handleSaveEdit(id: number) {
+    setSavingId(id);
+    try {
+      const updated = await api.updateMeal(id, editForm);
+      setMeals((prev) => prev.map((m) => m.id === id ? { ...updated, items: m.items } : m));
+      setEditingId(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Fehler beim Speichern');
+    } finally {
+      setSavingId(null);
+    }
+  }
 
   async function handleDelete(id: number) {
     setDeletingId(id);
@@ -190,6 +211,33 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
                 className="meal-card"
                 style={isActivity ? { borderColor: 'var(--color-success)' } : undefined}
               >
+                {editingId === meal.id ? (
+                  <div style={{ padding: 'var(--space-3)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ fontSize: 'var(--text-xs)', fontWeight: 700, display: 'block', marginBottom: 2 }}>Beschreibung</label>
+                        <input className="nb-input" value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
+                      </div>
+                      {[
+                        { key: 'calories', label: 'kcal' },
+                        { key: 'protein', label: 'Protein (g)' },
+                        { key: 'carbs', label: 'Kohlenhydrate (g)' },
+                        { key: 'fat', label: 'Fett (g)' },
+                      ].map(({ key, label }) => (
+                        <div key={key}>
+                          <label style={{ fontSize: 'var(--text-xs)', fontWeight: 700, display: 'block', marginBottom: 2 }}>{label}</label>
+                          <input className="nb-input" type="number" value={editForm[key as keyof typeof editForm]} onChange={e => setEditForm(f => ({ ...f, [key]: Number(e.target.value) }))} />
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                      <button className="nb-btn nb-btn-primary nb-btn-sm" onClick={() => handleSaveEdit(meal.id)} disabled={savingId === meal.id} type="button">
+                        {savingId === meal.id ? '...' : 'Speichern'}
+                      </button>
+                      <button className="nb-btn nb-btn-sm" onClick={() => setEditingId(null)} type="button">Abbrechen</button>
+                    </div>
+                  </div>
+                ) : (
                 <div
                   className="meal-card__header"
                   style={isActivity ? { background: '#F0FDF4' } : undefined}
@@ -206,6 +254,7 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
                   >
                     {isActivity ? `−${Math.abs(meal.calories)}` : meal.calories} kcal
                   </span>
+                  <button className="nb-btn nb-btn-sm" onClick={() => startEdit(meal)} type="button">✎</button>
                   <button
                     className="nb-btn nb-btn-danger nb-btn-sm"
                     onClick={() => handleDelete(meal.id)}
@@ -215,6 +264,7 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
                     {deletingId === meal.id ? '...' : 'Löschen'}
                   </button>
                 </div>
+                )}
                 {(meal.protein > 0 || meal.carbs > 0 || meal.fat > 0) && (
                   <div style={{ display: 'flex', gap: 'var(--space-3)', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-muted)', borderBottom: meal.items.length > 0 ? 'var(--border)' : undefined }}>
                     <span style={{ color: '#3B82F6', fontWeight: 700 }}>P {Math.round(meal.protein)}g</span>

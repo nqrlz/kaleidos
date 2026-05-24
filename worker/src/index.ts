@@ -250,6 +250,35 @@ export default {
         return corsResponse(meals);
       }
 
+      // PUT /api/meals/:id
+      const putMatch = path.match(/^\/api\/meals\/(\d+)$/);
+      if (method === 'PUT' && putMatch) {
+        const id = parseInt(putMatch[1], 10);
+        const body = await request.json() as {
+          description?: string;
+          calories?: number;
+          protein?: number;
+          carbs?: number;
+          fat?: number;
+        };
+
+        const existing = await env.DB.prepare(
+          'SELECT id FROM meals WHERE id = ? AND profile_id = ?'
+        ).bind(id, profileId).first();
+
+        if (!existing) return errorResponse('Meal not found', 404);
+
+        const result = await env.DB.prepare(
+          `UPDATE meals SET description = COALESCE(?, description), calories = COALESCE(?, calories),
+           protein = COALESCE(?, protein), carbs = COALESCE(?, carbs), fat = COALESCE(?, fat)
+           WHERE id = ? AND profile_id = ? RETURNING *`
+        ).bind(body.description ?? null, body.calories ?? null, body.protein ?? null, body.carbs ?? null, body.fat ?? null, id, profileId).first();
+
+        if (!result) return errorResponse('Failed to update meal', 500);
+
+        return corsResponse({ ...result, items: JSON.parse(result.items as string) });
+      }
+
       // DELETE /api/meals/:id
       const deleteMatch = path.match(/^\/api\/meals\/(\d+)$/);
       if (method === 'DELETE' && deleteMatch) {
