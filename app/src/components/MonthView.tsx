@@ -18,11 +18,12 @@ import PieChart from './PieChart';
 
 interface MonthViewProps {
   settings: Settings;
+  onDaySelect: (date: string) => void;
 }
 
 const WEEKDAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
-export default function MonthView({ settings }: MonthViewProps) {
+export default function MonthView({ settings, onDaySelect }: MonthViewProps) {
   const api = useApi();
   const [currentMonth, setCurrentMonth] = useState<Date>(() => startOfMonth(new Date()));
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -158,9 +159,10 @@ export default function MonthView({ settings }: MonthViewProps) {
           else if (pct > 80) barColor = 'var(--color-warning)';
           else if (pct > 50) barColor = 'var(--color-success)';
 
+          const dateStr = format(day, 'yyyy-MM-dd');
           return (
             <div
-              key={format(day, 'yyyy-MM-dd')}
+              key={dateStr}
               className={[
                 'calendar-day',
                 !inCurrentMonth ? 'calendar-day--empty' : '',
@@ -168,6 +170,8 @@ export default function MonthView({ settings }: MonthViewProps) {
               ]
                 .filter(Boolean)
                 .join(' ')}
+              onClick={() => inCurrentMonth && onDaySelect(dateStr)}
+              style={{ cursor: inCurrentMonth ? 'pointer' : undefined }}
             >
               <div className="calendar-day__number">{format(day, 'd')}</div>
               {inCurrentMonth && calories > 0 && (

@@ -53,7 +53,7 @@ export default function App() {
       case 'woche':
         return <WeekView settings={settings} onDaySelect={(d) => { setViewDate(d); setActiveTab('heute'); }} />;
       case 'monat':
-        return <MonthView settings={settings} />;
+        return <MonthView settings={settings} onDaySelect={(d) => { setViewDate(d); setActiveTab('heute'); }} />;
       case 'einstellungen':
         return <Settings settings={settings} onSettingsUpdate={setSettings} />;
       default:
