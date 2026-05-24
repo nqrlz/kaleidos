@@ -23,6 +23,10 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
   const targetCalories = settings.daily_calories - settings.deficit;
   const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0);
   const remainingCalories = targetCalories - totalCalories;
+  const totalProtein = Math.round(meals.reduce((sum, m) => sum + (m.protein || 0), 0));
+  const totalCarbs = Math.round(meals.reduce((sum, m) => sum + (m.carbs || 0), 0));
+  const totalFat = Math.round(meals.reduce((sum, m) => sum + (m.fat || 0), 0));
+  const proteinGoal = settings.protein_goal ?? 150;
 
   const parsedDate = parseISO(date);
   const isTodayDate = isToday(parsedDate);
@@ -137,6 +141,30 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
         />
       </div>
 
+      {/* Macros */}
+      <div className="stats-grid" style={{ marginBottom: 'var(--space-4)' }}>
+        <div className="stat-box" style={{ borderColor: '#3B82F6' }}>
+          <div className="stat-box__label">Protein</div>
+          <div className="stat-box__value" style={{ color: totalProtein >= proteinGoal ? '#16A34A' : undefined }}>
+            {totalProtein}<span className="stat-box__unit">g</span>
+          </div>
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-muted)', marginTop: 2 }}>
+            Ziel: {proteinGoal} g
+          </div>
+          <div style={{ height: 4, background: 'var(--color-gray-200)', marginTop: 'var(--space-1)', border: '1px solid var(--color-border)' }}>
+            <div style={{ height: '100%', width: `${Math.min(100, (totalProtein / Math.max(1, proteinGoal)) * 100)}%`, background: totalProtein >= proteinGoal ? '#16A34A' : '#3B82F6' }} />
+          </div>
+        </div>
+        <div className="stat-box">
+          <div className="stat-box__label">Kohlenhydrate</div>
+          <div className="stat-box__value">{totalCarbs}<span className="stat-box__unit">g</span></div>
+        </div>
+        <div className="stat-box">
+          <div className="stat-box__label">Fett</div>
+          <div className="stat-box__value">{totalFat}<span className="stat-box__unit">g</span></div>
+        </div>
+      </div>
+
       {/* Pie chart */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-6)' }}>
         <PieChart consumed={totalCalories} target={targetCalories} label="Tagesübersicht" />
@@ -187,12 +215,19 @@ export default function DayView({ date, settings, onDateChange }: DayViewProps) 
                     {deletingId === meal.id ? '...' : 'Löschen'}
                   </button>
                 </div>
+                {(meal.protein > 0 || meal.carbs > 0 || meal.fat > 0) && (
+                  <div style={{ display: 'flex', gap: 'var(--space-3)', padding: 'var(--space-2) var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-muted)', borderBottom: meal.items.length > 0 ? 'var(--border)' : undefined }}>
+                    <span style={{ color: '#3B82F6', fontWeight: 700 }}>P {Math.round(meal.protein)}g</span>
+                    <span>K {Math.round(meal.carbs)}g</span>
+                    <span>F {Math.round(meal.fat)}g</span>
+                  </div>
+                )}
                 {meal.items.length > 0 && (
                   <div className="meal-card__items">
                     {meal.items.map((item, i) => (
                       <div key={i} className="meal-item">
                         <span>{item.name}</span>
-                        <span className="meal-item__calories">{item.calories} kcal</span>
+                        <span className="meal-item__calories">{item.calories} kcal{item.protein ? ` · P ${Math.round(item.protein)}g` : ''}</span>
                       </div>
                     ))}
                   </div>

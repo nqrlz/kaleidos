@@ -26,10 +26,16 @@ function errorResponse(message: string, status = 500): Response {
 interface ClaudeItem {
   name: string;
   calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
 }
 
 interface ClaudeCalorieResult {
   totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
   items: ClaudeItem[];
 }
 
@@ -39,18 +45,21 @@ async function estimateCalories(
   imageBase64?: string,
   mediaType?: string,
 ): Promise<ClaudeCalorieResult> {
-  const prompt = `You are a nutritionist assistant. Estimate the calories and return ONLY valid JSON with no additional text.
+  const prompt = `You are a nutritionist assistant. Estimate the calories and macronutrients, return ONLY valid JSON with no additional text.
 
 Return this exact JSON structure:
 {
   "totalCalories": <number>,
+  "totalProtein": <grams as number>,
+  "totalCarbs": <grams as number>,
+  "totalFat": <grams as number>,
   "items": [
-    {"name": "<item name>", "calories": <number>},
+    {"name": "<item name>", "calories": <number>, "protein": <grams>, "carbs": <grams>, "fat": <grams>},
     ...
   ]
 }
 
-Be realistic with calorie estimates. Return only the JSON object, nothing else.`;
+Be realistic with estimates. Return only the JSON object, nothing else.`;
 
   const userContent = imageBase64 && mediaType
     ? [
@@ -130,9 +139,9 @@ export default {
 
         if (!result) {
           await env.DB.prepare(
-            'INSERT INTO settings (profile_id, daily_calories, deficit) VALUES (?, 2000, 500)'
+            'INSERT INTO settings (profile_id, daily_calories, deficit, protein_goal) VALUES (?, 2000, 500, 150)'
           ).bind(profileId).run();
-          return corsResponse({ profile_id: profileId, daily_calories: 2000, deficit: 500 });
+          return corsResponse({ profile_id: profileId, daily_calories: 2000, deficit: 500, protein_goal: 150 });
         }
 
         return corsResponse(result);
@@ -143,17 +152,20 @@ export default {
         const body = await request.json() as {
           daily_calories?: number;
           deficit?: number;
+          protein_goal?: number;
         };
 
         if (body.daily_calories === undefined || body.deficit === undefined) {
           return errorResponse('daily_calories and deficit are required', 400);
         }
 
-        await env.DB.prepare(
-          'INSERT INTO settings (profile_id, daily_calories, deficit) VALUES (?, ?, ?) ON CONFLICT(profile_id) DO UPDATE SET daily_calories = excluded.daily_calories, deficit = excluded.deficit'
-        ).bind(profileId, body.daily_calories, body.deficit).run();
+        const proteinGoal = body.protein_goal ?? 150;
 
-        return corsResponse({ profile_id: profileId, daily_calories: body.daily_calories, deficit: body.deficit });
+        await env.DB.prepare(
+          'INSERT INTO settings (profile_id, daily_calories, deficit, protein_goal) VALUES (?, ?, ?, ?) ON CONFLICT(profile_id) DO UPDATE SET daily_calories = excluded.daily_calories, deficit = excluded.deficit, protein_goal = excluded.protein_goal'
+        ).bind(profileId, body.daily_calories, body.deficit, proteinGoal).run();
+
+        return corsResponse({ profile_id: profileId, daily_calories: body.daily_calories, deficit: body.deficit, protein_goal: proteinGoal });
       }
 
       // POST /api/meals
@@ -173,7 +185,7 @@ export default {
         let calorieResult: ClaudeCalorieResult;
 
         if (typeof body.calories === 'number') {
-          calorieResult = { totalCalories: body.calories, items: [] };
+          calorieResult = { totalCalories: body.calories, totalProtein: 0, totalCarbs: 0, totalFat: 0, items: [] };
         } else {
           if (!env.ANTHROPIC_API_KEY) {
             return errorResponse('ANTHROPIC_API_KEY not configured. Please set it in wrangler.toml', 500);
@@ -194,10 +206,14 @@ export default {
           : body.description;
 
         const insertResult = await env.DB.prepare(
-          `INSERT INTO meals (profile_id, date, description, calories, items, created_at)
-           VALUES (?, ?, ?, ?, ?, datetime('now'))
+          `INSERT INTO meals (profile_id, date, description, calories, protein, carbs, fat, items, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
            RETURNING *`
-        ).bind(profileId, body.date, finalDescription, calorieResult.totalCalories, itemsJson).first();
+        ).bind(
+          profileId, body.date, finalDescription,
+          calorieResult.totalCalories, calorieResult.totalProtein, calorieResult.totalCarbs, calorieResult.totalFat,
+          itemsJson
+        ).first();
 
         if (!insertResult) {
           return errorResponse('Failed to insert meal', 500);

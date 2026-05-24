@@ -11,6 +11,7 @@ export default function Settings({ settings, onSettingsUpdate }: SettingsProps) 
   const api = useApi();
   const [dailyCalories, setDailyCalories] = useState(settings.daily_calories);
   const [deficit, setDeficit] = useState(settings.deficit);
+  const [proteinGoal, setProteinGoal] = useState(settings.protein_goal ?? 150);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export default function Settings({ settings, onSettingsUpdate }: SettingsProps) 
   useEffect(() => {
     setDailyCalories(settings.daily_calories);
     setDeficit(settings.deficit);
+    setProteinGoal(settings.protein_goal ?? 150);
   }, [settings]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -49,6 +51,7 @@ export default function Settings({ settings, onSettingsUpdate }: SettingsProps) 
       const updated = await api.updateSettings({
         daily_calories: dailyCalories,
         deficit,
+        protein_goal: proteinGoal,
       });
       onSettingsUpdate(updated);
       setSaved(true);
@@ -105,6 +108,25 @@ export default function Settings({ settings, onSettingsUpdate }: SettingsProps) 
             />
             <p className="settings-form__hint">
               Kaloriendefizit pro Tag für Gewichtsabnahme (z.B. 500 kcal ≈ 0,5 kg/Woche).
+            </p>
+          </div>
+
+          <div className="settings-form__group">
+            <label className="nb-label" htmlFor="protein-goal">
+              Tägliches Proteinziel
+            </label>
+            <input
+              id="protein-goal"
+              type="number"
+              className="nb-input"
+              value={proteinGoal}
+              min={0}
+              max={500}
+              onChange={(e) => setProteinGoal(Number(e.target.value))}
+              disabled={saving}
+            />
+            <p className="settings-form__hint">
+              Empfehlung: 1,6–2,2 g pro kg Körpergewicht für Muskelaufbau/-erhalt.
             </p>
           </div>
 

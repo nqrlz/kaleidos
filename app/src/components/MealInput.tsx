@@ -190,6 +190,13 @@ export default function MealInput({ date, onMealAdded }: MealInputProps) {
             <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{lastMeal.description}</span>
             <span className="nb-badge nb-badge-primary">{lastMeal.calories} kcal</span>
           </div>
+          {(lastMeal.protein > 0 || lastMeal.carbs > 0 || lastMeal.fat > 0) && (
+            <div style={{ display: 'flex', gap: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-muted)', marginBottom: 'var(--space-2)' }}>
+              <span style={{ color: '#3B82F6', fontWeight: 700 }}>P {Math.round(lastMeal.protein)}g</span>
+              <span>K {Math.round(lastMeal.carbs)}g</span>
+              <span>F {Math.round(lastMeal.fat)}g</span>
+            </div>
+          )}
           {lastMeal.items.length > 0 && (
             <div>
               {lastMeal.items.map((item, i) => (
