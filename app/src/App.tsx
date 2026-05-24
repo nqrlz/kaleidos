@@ -17,6 +17,7 @@ export default function App() {
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const today = format(new Date(), 'yyyy-MM-dd');
+  const [viewDate, setViewDate] = useState(today);
 
   useEffect(() => {
     api
@@ -48,7 +49,7 @@ export default function App() {
     }
     switch (activeTab) {
       case 'heute':
-        return <DayView date={today} settings={settings} />;
+        return <DayView date={viewDate} settings={settings} onDateChange={setViewDate} />;
       case 'woche':
         return <WeekView settings={settings} />;
       case 'monat':
@@ -60,8 +61,13 @@ export default function App() {
     }
   }
 
+  function handleTabChange(tab: Tab) {
+    if (tab === 'heute') setViewDate(today);
+    setActiveTab(tab);
+  }
+
   return (
-    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+    <Layout activeTab={activeTab} onTabChange={handleTabChange}>
       {renderContent()}
     </Layout>
   );

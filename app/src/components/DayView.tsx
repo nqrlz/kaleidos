@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { format, isToday, parseISO } from 'date-fns';
+import { format, isToday, parseISO, addDays, subDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useApi } from '../hooks/useApi';
 import { Meal, Settings } from '../types';
@@ -10,9 +10,10 @@ import ActivityInput from './ActivityInput';
 interface DayViewProps {
   date: string; // YYYY-MM-DD
   settings: Settings;
+  onDateChange: (date: string) => void;
 }
 
-export default function DayView({ date, settings }: DayViewProps) {
+export default function DayView({ date, settings, onDateChange }: DayViewProps) {
   const api = useApi();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,8 +26,17 @@ export default function DayView({ date, settings }: DayViewProps) {
 
   const parsedDate = parseISO(date);
   const isTodayDate = isToday(parsedDate);
-
   const dateLabel = format(parsedDate, "EEEE, d. MMMM yyyy", { locale: de });
+
+  function goToPrevDay() {
+    onDateChange(format(subDays(parsedDate, 1), 'yyyy-MM-dd'));
+  }
+  function goToNextDay() {
+    onDateChange(format(addDays(parsedDate, 1), 'yyyy-MM-dd'));
+  }
+  function goToToday() {
+    onDateChange(format(new Date(), 'yyyy-MM-dd'));
+  }
 
   const fetchMeals = useCallback(async () => {
     setLoading(true);
@@ -78,7 +88,18 @@ export default function DayView({ date, settings }: DayViewProps) {
 
   return (
     <div>
-      <div className="day-view__date-header">{dateLabel}</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
+        <button className="nb-btn nb-btn-sm" onClick={goToPrevDay} type="button">←</button>
+        <div style={{ textAlign: 'center' }}>
+          <div className="day-view__date-header" style={{ marginBottom: 0 }}>{dateLabel}</div>
+          {!isTodayDate && (
+            <button className="nb-btn nb-btn-sm" onClick={goToToday} type="button" style={{ marginTop: 'var(--space-1)', fontSize: 'var(--text-xs)' }}>
+              Heute
+            </button>
+          )}
+        </div>
+        <button className="nb-btn nb-btn-sm" onClick={goToNextDay} type="button" disabled={isTodayDate}>→</button>
+      </div>
 
       {/* Stats row */}
       <div className="stats-grid" style={{ marginBottom: 'var(--space-4)' }}>
@@ -121,12 +142,8 @@ export default function DayView({ date, settings }: DayViewProps) {
         <PieChart consumed={totalCalories} target={targetCalories} label="Tagesübersicht" />
       </div>
 
-      {isTodayDate && (
-        <>
-          <MealInput date={date} onMealAdded={handleMealAdded} />
-          <ActivityInput date={date} onActivityAdded={handleMealAdded} />
-        </>
-      )}
+      <MealInput date={date} onMealAdded={handleMealAdded} />
+      <ActivityInput date={date} onActivityAdded={handleMealAdded} />
 
       {/* Meals list */}
       <h2 style={{ marginBottom: 'var(--space-3)', fontSize: 'var(--text-lg)', marginTop: 'var(--space-6)' }}>
@@ -134,7 +151,7 @@ export default function DayView({ date, settings }: DayViewProps) {
       </h2>
 
       {meals.length === 0 ? (
-        <div className="empty-state">Noch keine Einträge für heute.</div>
+        <div className="empty-state">Noch keine Einträge für diesen Tag.</div>
       ) : (
         <div>
           {meals.map((meal) => {
