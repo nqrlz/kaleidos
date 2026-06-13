@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bluewater Jazz Festival 2026 – Programm</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --clr-bg: #0f0f14;
+      --clr-surface: #1a1a24;
+      --clr-border: #2e2e42;
+      --clr-accent: #e8b84b;
+      --clr-accent-dim: #7a5e1a;
+      --clr-text: #e8e8f0;
+      --clr-muted: #8888a8;
+      --clr-sold-out: #c0392b;
+      --radius: 8px;
+    }
+
+    body {
+      font-family: "Georgia", serif;
+      background-color: var(--clr-bg);
+      color: var(--clr-text);
+      line-height: 1.6;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    header {
+      background: linear-gradient(160deg, #1a1a30 0%, #0f0f14 60%);
+      border-bottom: 2px solid var(--clr-accent);
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+    }
+
+    header p.tagline {
+      font-style: italic;
+      color: var(--clr-muted);
+      margin-top: 0.4rem;
+      font-size: 1.05rem;
+    }
+
+    header h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      color: var(--clr-accent);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    header time {
+      display: block;
+      margin-top: 0.8rem;
+      font-size: 0.95rem;
+      color: var(--clr-muted);
+      font-family: monospace;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Layout ──────────────────────────────────── */
+    .site-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* ── Filter Sidebar ──────────────────────────── */
+    aside.filters {
+      position: sticky;
+      top: 1.5rem;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    aside.filters h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--clr-accent);
+      margin-bottom: 1.2rem;
+      font-family: sans-serif;
+    }
+
+    fieldset {
+      border: none;
+      margin-bottom: 1.4rem;
+    }
+
+    legend {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--clr-muted);
+      font-family: sans-serif;
+      margin-bottom: 0.6rem;
+    }
+
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: sans-serif;
+    }
+
+    .filter-option input[type="checkbox"] {
+      accent-color: var(--clr-accent);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .filter-option:hover {
+      color: var(--clr-accent);
+    }
+
+    .filter-divider {
+      height: 1px;
+      background: var(--clr-border);
+      margin: 1rem 0;
+    }
+
+    button.reset-btn {
+      width: 100%;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--clr-accent-dim);
+      color: var(--clr-accent);
+      border-radius: var(--radius);
+      font-family: sans-serif;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button.reset-btn:hover {
+      background: var(--clr-accent-dim);
+    }
+
+    /* ── Programme ───────────────────────────────── */
+    main {
+      min-width: 0;
+    }
+
+    .results-count {
+      font-family: sans-serif;
+      font-size: 0.85rem;
+      color: var(--clr-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .results-count strong {
+      color: var(--clr-text);
+    }
+
+    /* Day sections */
+    section.day {
+      margin-bottom: 3rem;
+    }
+
+    section.day h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--clr-accent);
+      font-family: sans-serif;
+      border-bottom: 1px solid var(--clr-border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    /* Event cards */
+    ol.event-list {
+      list-style: none;
+      display: grid;
+      gap: 1rem;
+    }
+
+    article.event-card {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      gap: 0 1.2rem;
+      align-items: start;
+      transition: border-color 0.2s;
+    }
+
+    article.event-card:hover {
+      border-color: var(--clr-accent-dim);
+    }
+
+    article.event-card.is-hidden {
+      display: none;
+    }
+
+    .event-time {
+      font-family: monospace;
+      font-size: 1.1rem;
+      color: var(--clr-accent);
+      padding-top: 0.1rem;
+    }
+
+    .event-body h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .event-body .artist-subtitle {
+      font-size: 0.9rem;
+      color: var(--clr-muted);
+      font-style: italic;
+      margin-bottom: 0.5rem;
+      font-family: sans-serif;
+    }
+
+    .event-body p.description {
+      font-size: 0.88rem;
+      color: var(--clr-muted);
+      font-family: sans-serif;
+      line-height: 1.5;
+    }
+
+    .event-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.4rem;
+      min-width: 100px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-family: sans-serif;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .badge-genre-bebop       { background: #1e3a5f; color: #6ab0f5; }
+    .badge-genre-fusion      { background: #2a1e5f; color: #9b82f5; }
+    .badge-genre-latin       { background: #3a1e1e; color: #f58282; }
+    .badge-genre-avantgarde  { background: #1e3a2a; color: #6af5b0; }
+    .badge-genre-swing       { background: #3a2e1e; color: #f5c06a; }
+    .badge-genre-smooth      { background: #1e2e3a; color: #6addf5; }
+    .badge-genre-hardbop     { background: #2e1e3a; color: #d06af5; }
+    .badge-genre-freejazz    { background: #1e3a32; color: #6af5e0; }
+
+    .badge-available {
+      background: #1a3a1a;
+      color: #6af56a;
+      border: 1px solid #2a5a2a;
+    }
+
+    .badge-sold-out {
+      background: #3a1a1a;
+      color: #f56a6a;
+      border: 1px solid #5a2a2a;
+    }
+
+    .event-stage {
+      font-size: 0.78rem;
+      color: var(--clr-muted);
+      font-family: sans-serif;
+      text-align: right;
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: none;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--clr-muted);
+      font-family: sans-serif;
+      font-style: italic;
+    }
+
+    .empty-state.is-visible {
+      display: block;
+    }
+
+    /* Day hidden when all children hidden */
+    section.day.is-empty h2 {
+      opacity: 0.3;
+    }
+
+    /* ── Footer ──────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--clr-border);
+      padding: 2rem;
+      text-align: center;
+      font-family: sans-serif;
+      font-size: 0.8rem;
+      color: var(--clr-muted);
+    }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 720px) {
+      .site-wrapper {
+        grid-template-columns: 1fr;
+      }
+
+      aside.filters {
+        position: static;
+      }
+
+      article.event-card {
+        grid-template-columns: 60px 1fr;
+        grid-template-rows: auto auto;
+      }
+
+      .event-meta {
+        grid-column: 2;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════════ -->
+  <header>
+    <h1>Bluewater Jazz Festival</h1>
+    <p class="tagline">Drei Nächte. Eine Stadt. Grenzenlose Musik.</p>
+    <time datetime="2026-07-17/2026-07-19">17. – 19. Juli 2026 &nbsp;·&nbsp; Hafengelände Nordstadt</time>
+  </header>
+
+  <div class="site-wrapper">
+
+    <!-- ════════════════════════════════════════
+         FILTER SIDEBAR
+    ════════════════════════════════════════ -->
+    <aside class="filters" aria-label="Programm filtern">
+      <h2>Programm filtern</h2>
+
+      <!-- Genre -->
+      <fieldset id="filter-genre">
+        <legend>Genre</legend>
+
+        <label class="filter-option">
+          <input type="checkbox" name="genre" value="bebop"> Bebop
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="genre" value="fusion"> Fusion
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="genre" value="latin"> Latin Jazz
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="genre" value="avantgarde"> Avantgarde
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="genre" value="swing"> Swing
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="genre" value="smooth"> Smooth Jazz
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="genre" value="hardbop"> Hard Bop
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="genre" value="freejazz"> Free Jazz
+        </label>
+      </fieldset>
+
+      <div class="filter-divider" role="separator"></div>
+
+      <!-- Tag -->
+      <fieldset id="filter-day">
+        <legend>Tag</legend>
+
+        <label class="filter-option">
+          <input type="checkbox" name="day" value="freitag"> Freitag, 17. Juli
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="day" value="samstag"> Samstag, 18. Juli
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="day" value="sonntag"> Sonntag, 19. Juli
+        </label>
+      </fieldset>
+
+      <div class="filter-divider" role="separator"></div>
+
+      <!-- Uhrzeit -->
+      <fieldset id="filter-time">
+        <legend>Uhrzeit</legend>
+
+        <label class="filter-option">
+          <input type="checkbox" name="time" value="18:00"> 18:00
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="time" value="19:30"> 19:30
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="time" value="21:00"> 21:00
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="time" value="22:30"> 22:30
+        </label>
+      </fieldset>
+
+      <div class="filter-divider" role="separator"></div>
+
+      <!-- Verfügbarkeit -->
+      <fieldset id="filter-availability">
+        <legend>Verfügbarkeit</legend>
+
+        <label class="filter-option">
+          <input type="checkbox" name="availability" value="available"> Tickets verfügbar
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" name="availability" value="sold-out"> Ausverkauft
+        </label>
+      </fieldset>
+
+      <button class="reset-btn" type="button" id="reset-filters">Filter zurücksetzen</button>
+    </aside>
+
+    <!-- ════════════════════════════════════════
+         MAIN PROGRAMME
+    ════════════════════════════════════════ -->
+    <main id="programme">
+      <p class="results-count" aria-live="polite" aria-atomic="true">
+        <strong id="visible-count">12</strong> von 12 Veranstaltungen
+      </p>
+
+      <!-- ── FREITAG ─────────────────────────── -->
+      <section class="day" id="day-freitag" aria-labelledby="heading-freitag">
+        <h2 id="heading-freitag">Freitag, 17. Juli 2026</h2>
+        <ol class="event-list">
+
+          <li>
+            <article class="event-card"
+              data-day="freitag"
+              data-time="18:00"
+              data-genre="swing"
+              data-availability="available"
+              aria-label="Veranstaltung: The Harlem Swingers">
+              <div class="event-time">
+                <time datetime="2026-07-17T18:00">18:00</time>
+              </div>
+              <div class="event-body">
+                <h3>The Harlem Swingers</h3>
+                <p class="artist-subtitle">Big Band · 12 Musiker</p>
+                <p class="description">
+                  Eröffnungsabend mit der Kraft des klassischen Big-Band-Swings.
+                  Arrangements aus den 1940ern, neu interpretiert für heute.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-swing">Swing</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Hauptbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="freitag"
+              data-time="19:30"
+              data-genre="latin"
+              data-availability="available"
+              aria-label="Veranstaltung: Calle Caliente Quartet">
+              <div class="event-time">
+                <time datetime="2026-07-17T19:30">19:30</time>
+              </div>
+              <div class="event-body">
+                <h3>Calle Caliente Quartet</h3>
+                <p class="artist-subtitle">Latin Jazz · Quartett</p>
+                <p class="description">
+                  Afro-kubanische Rhythmen treffen auf modale Harmonik.
+                  Heißblütig, mitreißend, unvergesslich.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-latin">Latin Jazz</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Hafenbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="freitag"
+              data-time="21:00"
+              data-genre="bebop"
+              data-availability="sold-out"
+              aria-label="Veranstaltung: Marcus Bell Trio">
+              <div class="event-time">
+                <time datetime="2026-07-17T21:00">21:00</time>
+              </div>
+              <div class="event-body">
+                <h3>Marcus Bell Trio</h3>
+                <p class="artist-subtitle">Piano Trio · Bebop</p>
+                <p class="description">
+                  Virtuoses Bebop-Piano in der Tradition von Bud Powell und Thelonious Monk.
+                  Marcus Bell gilt als einer der aufregendsten Pianisten seiner Generation.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-bebop">Bebop</span>
+                <span class="badge badge-sold-out">Ausverkauft</span>
+                <span class="event-stage">Hauptbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="freitag"
+              data-time="22:30"
+              data-genre="freejazz"
+              data-availability="available"
+              aria-label="Veranstaltung: Das Kollektiv">
+              <div class="event-time">
+                <time datetime="2026-07-17T22:30">22:30</time>
+              </div>
+              <div class="event-body">
+                <h3>Das Kollektiv</h3>
+                <p class="artist-subtitle">Free Jazz · Ensemble</p>
+                <p class="description">
+                  Spätnächtliche Grenzüberschreitung. Sechs Musiker, keine
+                  Vorgaben, reine Energie. Nichts für schwache Nerven.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-freejazz">Free Jazz</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Clubbühne</span>
+              </div>
+            </article>
+          </li>
+
+        </ol>
+      </section>
+
+      <!-- ── SAMSTAG ────────────────────────── -->
+      <section class="day" id="day-samstag" aria-labelledby="heading-samstag">
+        <h2 id="heading-samstag">Samstag, 18. Juli 2026</h2>
+        <ol class="event-list">
+
+          <li>
+            <article class="event-card"
+              data-day="samstag"
+              data-time="18:00"
+              data-genre="smooth"
+              data-availability="available"
+              aria-label="Veranstaltung: Elena Voss & Band">
+              <div class="event-time">
+                <time datetime="2026-07-18T18:00">18:00</time>
+              </div>
+              <div class="event-body">
+                <h3>Elena Voss &amp; Band</h3>
+                <p class="artist-subtitle">Smooth Jazz · Vokal</p>
+                <p class="description">
+                  Samtig, elegant und unvermittelt berührend. Elena Voss verarbeitet
+                  persönliche Geschichten zu atmosphärischen Kompositionen.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-smooth">Smooth Jazz</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Hafenbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="samstag"
+              data-time="19:30"
+              data-genre="hardbop"
+              data-availability="sold-out"
+              aria-label="Veranstaltung: The Blue Note Project">
+              <div class="event-time">
+                <time datetime="2026-07-18T19:30">19:30</time>
+              </div>
+              <div class="event-body">
+                <h3>The Blue Note Project</h3>
+                <p class="artist-subtitle">Hard Bop · Quintett</p>
+                <p class="description">
+                  Eine Hommage an das goldene Zeitalter des Hard Bop: Art Blakey,
+                  Horace Silver und Lee Morgan als Inspiration für fünf brillante Musiker.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-hardbop">Hard Bop</span>
+                <span class="badge badge-sold-out">Ausverkauft</span>
+                <span class="event-stage">Hauptbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="samstag"
+              data-time="21:00"
+              data-genre="fusion"
+              data-availability="available"
+              aria-label="Veranstaltung: Electric Storm">
+              <div class="event-time">
+                <time datetime="2026-07-18T21:00">21:00</time>
+              </div>
+              <div class="event-body">
+                <h3>Electric Storm</h3>
+                <p class="artist-subtitle">Jazz Fusion · Band</p>
+                <p class="description">
+                  Hochoktaniger Fusion-Jazz mit Einflüssen aus Funk, Rock und
+                  elektronischer Musik. Live-Elektronik trifft auf akustischen Kontrabass.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-fusion">Fusion</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Hauptbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="samstag"
+              data-time="22:30"
+              data-genre="latin"
+              data-availability="available"
+              aria-label="Veranstaltung: Noche Brava">
+              <div class="event-time">
+                <time datetime="2026-07-18T22:30">22:30</time>
+              </div>
+              <div class="event-body">
+                <h3>Noche Brava</h3>
+                <p class="artist-subtitle">Latin Jazz · Septett</p>
+                <p class="description">
+                  Brasilianischer Samba trifft kubanischen Son. Die sieben Musiker
+                  des Septetts bringen das Hafengelände zum Tanzen.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-latin">Latin Jazz</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Hafenbühne</span>
+              </div>
+            </article>
+          </li>
+
+        </ol>
+      </section>
+
+      <!-- ── SONNTAG ─────────────────────────── -->
+      <section class="day" id="day-sonntag" aria-labelledby="heading-sonntag">
+        <h2 id="heading-sonntag">Sonntag, 19. Juli 2026</h2>
+        <ol class="event-list">
+
+          <li>
+            <article class="event-card"
+              data-day="sonntag"
+              data-time="18:00"
+              data-genre="avantgarde"
+              data-availability="available"
+              aria-label="Veranstaltung: Yuki Tanaka Solo">
+              <div class="event-time">
+                <time datetime="2026-07-19T18:00">18:00</time>
+              </div>
+              <div class="event-body">
+                <h3>Yuki Tanaka Solo</h3>
+                <p class="artist-subtitle">Avantgarde · Solo</p>
+                <p class="description">
+                  Stille und Klang als gleichwertige Partner. Yuki Tanaka
+                  erkundet am Flügel die Grenzen zwischen Komposition und Improvisation.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-avantgarde">Avantgarde</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Clubbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="sonntag"
+              data-time="19:30"
+              data-genre="bebop"
+              data-availability="available"
+              aria-label="Veranstaltung: Straight Ahead All-Stars">
+              <div class="event-time">
+                <time datetime="2026-07-19T19:30">19:30</time>
+              </div>
+              <div class="event-body">
+                <h3>Straight Ahead All-Stars</h3>
+                <p class="artist-subtitle">Bebop · All-Star-Band</p>
+                <p class="description">
+                  Festival-Highlights vereint auf einer Bühne: Sieben Stars der
+                  Szene improvisieren gemeinsam über Bebop-Standards.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-bebop">Bebop</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Hauptbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="sonntag"
+              data-time="21:00"
+              data-genre="fusion"
+              data-availability="sold-out"
+              aria-label="Veranstaltung: Orbital Jazz Collective">
+              <div class="event-time">
+                <time datetime="2026-07-19T21:00">21:00</time>
+              </div>
+              <div class="event-body">
+                <h3>Orbital Jazz Collective</h3>
+                <p class="artist-subtitle">Jazz Fusion · Kollektiv</p>
+                <p class="description">
+                  Das Headliner-Konzert des Festivals. Acht Musiker, fünf Kontinente,
+                  eine gemeinsame Sprache: Groove.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-fusion">Fusion</span>
+                <span class="badge badge-sold-out">Ausverkauft</span>
+                <span class="event-stage">Hauptbühne</span>
+              </div>
+            </article>
+          </li>
+
+          <li>
+            <article class="event-card"
+              data-day="sonntag"
+              data-time="22:30"
+              data-genre="swing"
+              data-availability="available"
+              aria-label="Veranstaltung: Late Night Jam Session">
+              <div class="event-time">
+                <time datetime="2026-07-19T22:30">22:30</time>
+              </div>
+              <div class="event-body">
+                <h3>Late Night Jam Session</h3>
+                <p class="artist-subtitle">Swing / Open Format · Open Stage</p>
+                <p class="description">
+                  Festival-Finale: Alle Musiker des Wochenendes kommen noch einmal
+                  zusammen. Spontan, ausgelassen, legendär.
+                </p>
+              </div>
+              <div class="event-meta">
+                <span class="badge badge-genre-swing">Swing</span>
+                <span class="badge badge-available">Verfügbar</span>
+                <span class="event-stage">Hafenbühne</span>
+              </div>
+            </article>
+          </li>
+
+        </ol>
+      </section>
+
+      <p class="empty-state" id="empty-state" aria-live="polite">
+        Keine Veranstaltungen entsprechen den gewählten Filtern.
+      </p>
+    </main>
+
+  </div><!-- /.site-wrapper -->
+
+  <footer>
+    <p>
+      &copy; 2026 Bluewater Jazz Festival e.V. &nbsp;·&nbsp;
+      Hafengelände Nordstadt &nbsp;·&nbsp;
+      <a href="mailto:info@bluewater-jazz.example" style="color: var(--clr-accent);">info@bluewater-jazz.example</a>
+    </p>
+  </footer>
+
+  <!-- ════════════════════════════════════════════
+       JAVASCRIPT – Filter-Logik
+       (bewusst minimal gehalten als Lernvorlage)
+  ════════════════════════════════════════════ -->
+  <script>
+    // Alle Checkbox-Gruppen einsammeln
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const cards      = document.querySelectorAll('.event-card');
+    const countEl    = document.getElementById('visible-count');
+    const emptyState = document.getElementById('empty-state');
+    const resetBtn   = document.getElementById('reset-filters');
+
+    // Hilfsfunktion: Alle aktiven Werte einer Gruppe auslesen
+    function getActive(name) {
+      return [...document.querySelectorAll(`input[name="${name}"]:checked`)]
+        .map(cb => cb.value);
+    }
+
+    // Filter anwenden
+    function applyFilters() {
+      const activeGenres       = getActive('genre');
+      const activeDays         = getActive('day');
+      const activeTimes        = getActive('time');
+      const activeAvailability = getActive('availability');
+
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const matchGenre = activeGenres.length === 0
+          || activeGenres.includes(card.dataset.genre);
+
+        const matchDay = activeDays.length === 0
+          || activeDays.includes(card.dataset.day);
+
+        const matchTime = activeTimes.length === 0
+          || activeTimes.includes(card.dataset.time);
+
+        const matchAvailability = activeAvailability.length === 0
+          || activeAvailability.includes(card.dataset.availability);
+
+        const isVisible = matchGenre && matchDay && matchTime && matchAvailability;
+
+        card.classList.toggle('is-hidden', !isVisible);
+        if (isVisible) visibleCount++;
+      });
+
+      // Zähler aktualisieren
+      countEl.textContent = visibleCount;
+
+      // Leer-Zustand anzeigen
+      emptyState.classList.toggle('is-visible', visibleCount === 0);
+    }
+
+    // Event Listener auf alle Checkboxen
+    checkboxes.forEach(cb => cb.addEventListener('change', applyFilters));
+
+    // Filter zurücksetzen
+    resetBtn.addEventListener('click', () => {
+      checkboxes.forEach(cb => cb.checked = false);
+      applyFilters();
+    });
+  </script>
+
+</body>
+</html>
