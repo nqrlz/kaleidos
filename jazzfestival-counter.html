@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bluewater Jazz Festival 2026 – Tickets</title>
+</head>
+
+<body>
+
+  <header>
+    <h1>Bluewater Jazz Festival 2026</h1>
+    <p>17. – 19. Juli 2026 · Hafengelände Nordstadt</p>
+  </header>
+
+  <main>
+    <h2>Tickets bestellen</h2>
+
+    <section>
+      <h3>The Harlem Swingers</h3>
+      <p>Freitag, 17. Juli · 18:00 · Hauptbühne</p>
+      <p>Preis: 18 €</p>
+
+      <button onclick="entfernen('harlem')">–</button>
+      <span id="harlem">0</span>
+      <button onclick="hinzufuegen('harlem')">+</button>
+    </section>
+
+    <section>
+      <h3>Marcus Bell Trio</h3>
+      <p>Freitag, 17. Juli · 21:00 · Hauptbühne</p>
+      <p>Preis: 22 €</p>
+
+      <button onclick="entfernen('marcus')">–</button>
+      <span id="marcus">0</span>
+      <button onclick="hinzufuegen('marcus')">+</button>
+    </section>
+
+    <section>
+      <h3>The Blue Note Project</h3>
+      <p>Samstag, 18. Juli · 19:30 · Hauptbühne</p>
+      <p>Preis: 22 €</p>
+
+      <button onclick="entfernen('bluenote')">–</button>
+      <span id="bluenote">0</span>
+      <button onclick="hinzufuegen('bluenote')">+</button>
+    </section>
+
+    <section>
+      <h3>Electric Storm</h3>
+      <p>Samstag, 18. Juli · 21:00 · Hauptbühne</p>
+      <p>Preis: 25 €</p>
+
+      <button onclick="entfernen('electric')">–</button>
+      <span id="electric">0</span>
+      <button onclick="hinzufuegen('electric')">+</button>
+    </section>
+
+    <section>
+      <h3>Orbital Jazz Collective</h3>
+      <p>Sonntag, 19. Juli · 21:00 · Hauptbühne</p>
+      <p>Preis: 28 €</p>
+
+      <button onclick="entfernen('orbital')">–</button>
+      <span id="orbital">0</span>
+      <button onclick="hinzufuegen('orbital')">+</button>
+    </section>
+
+    <hr>
+
+    <p>Tickets gesamt: <strong id="gesamt">0</strong></p>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Bluewater Jazz Festival e.V.</p>
+  </footer>
+
+  <script>
+    let gesamt = 0;
+
+    function hinzufuegen(id) {
+      const anzeige = document.getElementById(id);
+      const aktuelleZahl = anzeige.textContent;
+      const neueZahl = aktuelleZahl + 1;
+      anzeige.textContent = neueZahl;
+
+      gesamt = gesamt + 1;
+      document.getElementById('gesamt').textContent = gesamt;
+    }
+
+    function entfernen(id) {
+      const anzeige = document.getElementById(id);
+      const aktuelleZahl = anzeige.textContent;
+
+      if (aktuelleZahl > 0) {
+        const neueZahl = aktuelleZahl - 1;
+        anzeige.textContent = neueZahl;
+
+        gesamt = gesamt - 1;
+        document.getElementById('gesamt').textContent = gesamt;
+      }
+    }
+  </script>
+
+</body>
+</html>
