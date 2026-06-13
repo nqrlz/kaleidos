@@ -81,7 +81,7 @@
 
     function hinzufuegen(id) {
       const anzeige = document.getElementById(id);
-      const aktuelleZahl = anzeige.textContent;
+      const aktuelleZahl = parseInt(anzeige.textContent);
       const neueZahl = aktuelleZahl + 1;
       anzeige.textContent = neueZahl;
 
@@ -91,7 +91,7 @@
 
     function entfernen(id) {
       const anzeige = document.getElementById(id);
-      const aktuelleZahl = anzeige.textContent;
+      const aktuelleZahl = parseInt(anzeige.textContent);
 
       if (aktuelleZahl > 0) {
         const neueZahl = aktuelleZahl - 1;
