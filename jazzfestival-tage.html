@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bluewater Jazz Festival 2026 – Programm</title>
+</head>
+
+<body>
+
+  <header>
+    <h1>Bluewater Jazz Festival 2026</h1>
+    <p>17. – 19. Juli 2026 · Hafengelände Nordstadt</p>
+  </header>
+
+  <main>
+
+    <!-- Tages-Auswahl -->
+    <nav>
+      <button onclick="zeigeTag('freitag')">Freitag</button>
+      <button onclick="zeigeTag('samstag')">Samstag</button>
+      <button onclick="zeigeTag('sonntag')">Sonntag</button>
+    </nav>
+
+    <!-- Freitag -->
+    <section id="freitag">
+      <h2>Freitag, 17. Juli 2026</h2>
+
+      <article>
+        <h3>18:00 – The Harlem Swingers</h3>
+        <p>Big Band · Hauptbühne</p>
+        <p>Eröffnungsabend mit der Kraft des klassischen Big-Band-Swings. Arrangements aus den 1940ern, neu interpretiert für heute.</p>
+      </article>
+
+      <article>
+        <h3>19:30 – Calle Caliente Quartet</h3>
+        <p>Latin Jazz · Hafenbühne</p>
+        <p>Afro-kubanische Rhythmen treffen auf modale Harmonik. Heißblütig, mitreißend, unvergesslich.</p>
+      </article>
+
+      <article>
+        <h3>21:00 – Marcus Bell Trio</h3>
+        <p>Bebop · Hauptbühne</p>
+        <p>Virtuoses Bebop-Piano in der Tradition von Bud Powell und Thelonious Monk.</p>
+      </article>
+
+      <article>
+        <h3>22:30 – Das Kollektiv</h3>
+        <p>Free Jazz · Clubbühne</p>
+        <p>Spätnächtliche Grenzüberschreitung. Sechs Musiker, keine Vorgaben, reine Energie.</p>
+      </article>
+    </section>
+
+    <!-- Samstag -->
+    <section id="samstag">
+      <h2>Samstag, 18. Juli 2026</h2>
+
+      <article>
+        <h3>18:00 – Elena Voss &amp; Band</h3>
+        <p>Smooth Jazz · Hafenbühne</p>
+        <p>Samtig, elegant und unvermittelt berührend. Elena Voss verarbeitet persönliche Geschichten zu atmosphärischen Kompositionen.</p>
+      </article>
+
+      <article>
+        <h3>19:30 – The Blue Note Project</h3>
+        <p>Hard Bop · Hauptbühne</p>
+        <p>Eine Hommage an das goldene Zeitalter des Hard Bop: Art Blakey, Horace Silver und Lee Morgan als Inspiration.</p>
+      </article>
+
+      <article>
+        <h3>21:00 – Electric Storm</h3>
+        <p>Jazz Fusion · Hauptbühne</p>
+        <p>Hochoktaniger Fusion-Jazz mit Einflüssen aus Funk, Rock und elektronischer Musik.</p>
+      </article>
+
+      <article>
+        <h3>22:30 – Noche Brava</h3>
+        <p>Latin Jazz · Hafenbühne</p>
+        <p>Brasilianischer Samba trifft kubanischen Son. Das Septett bringt das Hafengelände zum Tanzen.</p>
+      </article>
+    </section>
+
+    <!-- Sonntag -->
+    <section id="sonntag">
+      <h2>Sonntag, 19. Juli 2026</h2>
+
+      <article>
+        <h3>18:00 – Yuki Tanaka Solo</h3>
+        <p>Avantgarde · Clubbühne</p>
+        <p>Stille und Klang als gleichwertige Partner. Yuki Tanaka erkundet am Flügel die Grenzen zwischen Komposition und Improvisation.</p>
+      </article>
+
+      <article>
+        <h3>19:30 – Straight Ahead All-Stars</h3>
+        <p>Bebop · Hauptbühne</p>
+        <p>Festival-Highlights vereint auf einer Bühne: Sieben Stars der Szene improvisieren gemeinsam über Bebop-Standards.</p>
+      </article>
+
+      <article>
+        <h3>21:00 – Orbital Jazz Collective</h3>
+        <p>Jazz Fusion · Hauptbühne</p>
+        <p>Das Headliner-Konzert des Festivals. Acht Musiker, fünf Kontinente, eine gemeinsame Sprache: Groove.</p>
+      </article>
+
+      <article>
+        <h3>22:30 – Late Night Jam Session</h3>
+        <p>Swing · Hafenbühne</p>
+        <p>Festival-Finale: Alle Musiker des Wochenendes kommen noch einmal zusammen. Spontan, ausgelassen, legendär.</p>
+      </article>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Bluewater Jazz Festival e.V.</p>
+  </footer>
+
+  <script>
+    function zeigeTag(tag) {
+      document.getElementById('freitag').style.display = 'none';
+      document.getElementById('samstag').style.display = 'none';
+      document.getElementById('sonntag').style.display = 'none';
+
+      document.getElementById(tag).style.display = 'block';
+    }
+
+    // Beim Laden nur Freitag anzeigen
+    zeigeTag('freitag');
+  </script>
+
+</body>
+</html>
