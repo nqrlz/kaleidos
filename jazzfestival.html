@@ -484,57 +484,82 @@
     const emptyState = document.getElementById('empty-state');
     const resetBtn   = document.getElementById('reset-filters');
 
-    function applyFilters() {
-      // Aktive Filter aller vier Gruppen einsammeln
-      const activeGenres        = [];
-      const activeDays          = [];
-      const activeTimes         = [];
-      const activeAvailability  = [];
+    // Event Listener auf alle Checkboxen setzen
+    for (let i = 0; i < checkboxes.length; i++) {
+      checkboxes[i].addEventListener('change', filtern);
+    }
 
-      checkboxes.forEach(function(cb) {
-        if (!cb.checked) return;
-        if (cb.name === 'genre')        activeGenres.push(cb.value);
-        if (cb.name === 'day')          activeDays.push(cb.value);
-        if (cb.name === 'time')         activeTimes.push(cb.value);
-        if (cb.name === 'availability') activeAvailability.push(cb.value);
-      });
+    // Alle Filter zurücksetzen
+    resetBtn.addEventListener('click', function() {
+      for (let i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = false;
+      }
+      filtern();
+    });
 
-      // Jede Karte prüfen
-      let visibleCount = 0;
+    function filtern() {
+      let sichtbar = 0;
 
-      cards.forEach(function(card) {
-        const matchGenre = activeGenres.length === 0
-          || activeGenres.includes(card.dataset.genre);
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        let zeigeKarte = true;
 
-        const matchDay = activeDays.length === 0
-          || activeDays.includes(card.dataset.day);
+        // Genre prüfen
+        const genreBoxen = document.querySelectorAll('input[name="genre"]:checked');
+        if (genreBoxen.length > 0) {
+          let trifftZu = false;
+          for (let j = 0; j < genreBoxen.length; j++) {
+            if (genreBoxen[j].value === card.dataset.genre) trifftZu = true;
+          }
+          if (!trifftZu) zeigeKarte = false;
+        }
 
-        const matchTime = activeTimes.length === 0
-          || activeTimes.includes(card.dataset.time);
+        // Tag prüfen
+        const tagBoxen = document.querySelectorAll('input[name="day"]:checked');
+        if (tagBoxen.length > 0) {
+          let trifftZu = false;
+          for (let j = 0; j < tagBoxen.length; j++) {
+            if (tagBoxen[j].value === card.dataset.day) trifftZu = true;
+          }
+          if (!trifftZu) zeigeKarte = false;
+        }
 
-        const matchAvailability = activeAvailability.length === 0
-          || activeAvailability.includes(card.dataset.availability);
+        // Uhrzeit prüfen
+        const zeitBoxen = document.querySelectorAll('input[name="time"]:checked');
+        if (zeitBoxen.length > 0) {
+          let trifftZu = false;
+          for (let j = 0; j < zeitBoxen.length; j++) {
+            if (zeitBoxen[j].value === card.dataset.time) trifftZu = true;
+          }
+          if (!trifftZu) zeigeKarte = false;
+        }
 
-        if (matchGenre && matchDay && matchTime && matchAvailability) {
+        // Verfügbarkeit prüfen
+        const verfBoxen = document.querySelectorAll('input[name="availability"]:checked');
+        if (verfBoxen.length > 0) {
+          let trifftZu = false;
+          for (let j = 0; j < verfBoxen.length; j++) {
+            if (verfBoxen[j].value === card.dataset.availability) trifftZu = true;
+          }
+          if (!trifftZu) zeigeKarte = false;
+        }
+
+        if (zeigeKarte) {
           card.classList.remove('is-hidden');
-          visibleCount++;
+          sichtbar++;
         } else {
           card.classList.add('is-hidden');
         }
-      });
+      }
 
-      countEl.textContent = visibleCount;
-      emptyState.classList.toggle('is-visible', visibleCount === 0);
+      countEl.textContent = sichtbar;
+
+      if (sichtbar === 0) {
+        emptyState.classList.add('is-visible');
+      } else {
+        emptyState.classList.remove('is-visible');
+      }
     }
-
-    checkboxes.forEach(function(cb) {
-      cb.addEventListener('change', applyFilters);
-    });
-
-    resetBtn.addEventListener('click', function() {
-      checkboxes.forEach(function(cb) { cb.checked = false; });
-      applyFilters();
-    });
   </script>
 
 </body>
