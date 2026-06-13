@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bluewater Jazz Festival 2026 – Programm</title>
   <style>
-    article.event-card.is-hidden { display: none; }
     .empty-state { display: none; }
     .empty-state.is-visible { display: block; }
   </style>
@@ -35,28 +34,28 @@
         <legend>Genre</legend>
 
         <label class="filter-option">
-          <input type="checkbox" name="genre" value="bebop"> Bebop
+          <input type="checkbox" name="genre" value="bebop" onchange="filtern()"> Bebop
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="genre" value="fusion"> Fusion
+          <input type="checkbox" name="genre" value="fusion" onchange="filtern()"> Fusion
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="genre" value="latin"> Latin Jazz
+          <input type="checkbox" name="genre" value="latin" onchange="filtern()"> Latin Jazz
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="genre" value="avantgarde"> Avantgarde
+          <input type="checkbox" name="genre" value="avantgarde" onchange="filtern()"> Avantgarde
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="genre" value="swing"> Swing
+          <input type="checkbox" name="genre" value="swing" onchange="filtern()"> Swing
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="genre" value="smooth"> Smooth Jazz
+          <input type="checkbox" name="genre" value="smooth" onchange="filtern()"> Smooth Jazz
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="genre" value="hardbop"> Hard Bop
+          <input type="checkbox" name="genre" value="hardbop" onchange="filtern()"> Hard Bop
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="genre" value="freejazz"> Free Jazz
+          <input type="checkbox" name="genre" value="freejazz" onchange="filtern()"> Free Jazz
         </label>
       </fieldset>
 
@@ -67,13 +66,13 @@
         <legend>Tag</legend>
 
         <label class="filter-option">
-          <input type="checkbox" name="day" value="freitag"> Freitag, 17. Juli
+          <input type="checkbox" name="day" value="freitag" onchange="filtern()"> Freitag, 17. Juli
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="day" value="samstag"> Samstag, 18. Juli
+          <input type="checkbox" name="day" value="samstag" onchange="filtern()"> Samstag, 18. Juli
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="day" value="sonntag"> Sonntag, 19. Juli
+          <input type="checkbox" name="day" value="sonntag" onchange="filtern()"> Sonntag, 19. Juli
         </label>
       </fieldset>
 
@@ -84,16 +83,16 @@
         <legend>Uhrzeit</legend>
 
         <label class="filter-option">
-          <input type="checkbox" name="time" value="18:00"> 18:00
+          <input type="checkbox" name="time" value="18:00" onchange="filtern()"> 18:00
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="time" value="19:30"> 19:30
+          <input type="checkbox" name="time" value="19:30" onchange="filtern()"> 19:30
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="time" value="21:00"> 21:00
+          <input type="checkbox" name="time" value="21:00" onchange="filtern()"> 21:00
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="time" value="22:30"> 22:30
+          <input type="checkbox" name="time" value="22:30" onchange="filtern()"> 22:30
         </label>
       </fieldset>
 
@@ -104,14 +103,14 @@
         <legend>Verfügbarkeit</legend>
 
         <label class="filter-option">
-          <input type="checkbox" name="availability" value="available"> Tickets verfügbar
+          <input type="checkbox" name="availability" value="available" onchange="filtern()"> Tickets verfügbar
         </label>
         <label class="filter-option">
-          <input type="checkbox" name="availability" value="sold-out"> Ausverkauft
+          <input type="checkbox" name="availability" value="sold-out" onchange="filtern()"> Ausverkauft
         </label>
       </fieldset>
 
-      <button class="reset-btn" type="button" id="reset-filters">Filter zurücksetzen</button>
+      <button class="reset-btn" type="button" onclick="zuruecksetzen()">Filter zurücksetzen</button>
     </aside>
 
     <!-- ════════════════════════════════════════
@@ -478,87 +477,65 @@
        (bewusst minimal gehalten als Lernvorlage)
   ════════════════════════════════════════════ -->
   <script>
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    const cards      = document.querySelectorAll('.event-card');
-    const countEl    = document.getElementById('visible-count');
-    const emptyState = document.getElementById('empty-state');
-    const resetBtn   = document.getElementById('reset-filters');
-
-    // Event Listener auf alle Checkboxen setzen
-    for (let i = 0; i < checkboxes.length; i++) {
-      checkboxes[i].addEventListener('change', filtern);
-    }
-
-    // Alle Filter zurücksetzen
-    resetBtn.addEventListener('click', function() {
-      for (let i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = false;
-      }
-      filtern();
-    });
-
     function filtern() {
+      const cards = document.querySelectorAll('.event-card');
       let sichtbar = 0;
 
       for (let i = 0; i < cards.length; i++) {
         const card = cards[i];
-        let zeigeKarte = true;
+        let zeigen = true;
 
-        // Genre prüfen
-        const genreBoxen = document.querySelectorAll('input[name="genre"]:checked');
-        if (genreBoxen.length > 0) {
-          let trifftZu = false;
-          for (let j = 0; j < genreBoxen.length; j++) {
-            if (genreBoxen[j].value === card.dataset.genre) trifftZu = true;
+        // Genre: Ist eine passende Checkbox aktiv?
+        if (document.querySelectorAll('input[name="genre"]:checked').length > 0) {
+          if (!document.querySelector('input[name="genre"][value="' + card.dataset.genre + '"]:checked')) {
+            zeigen = false;
           }
-          if (!trifftZu) zeigeKarte = false;
         }
 
-        // Tag prüfen
-        const tagBoxen = document.querySelectorAll('input[name="day"]:checked');
-        if (tagBoxen.length > 0) {
-          let trifftZu = false;
-          for (let j = 0; j < tagBoxen.length; j++) {
-            if (tagBoxen[j].value === card.dataset.day) trifftZu = true;
+        // Tag: Ist eine passende Checkbox aktiv?
+        if (document.querySelectorAll('input[name="day"]:checked').length > 0) {
+          if (!document.querySelector('input[name="day"][value="' + card.dataset.day + '"]:checked')) {
+            zeigen = false;
           }
-          if (!trifftZu) zeigeKarte = false;
         }
 
-        // Uhrzeit prüfen
-        const zeitBoxen = document.querySelectorAll('input[name="time"]:checked');
-        if (zeitBoxen.length > 0) {
-          let trifftZu = false;
-          for (let j = 0; j < zeitBoxen.length; j++) {
-            if (zeitBoxen[j].value === card.dataset.time) trifftZu = true;
+        // Uhrzeit: Ist eine passende Checkbox aktiv?
+        if (document.querySelectorAll('input[name="time"]:checked').length > 0) {
+          if (!document.querySelector('input[name="time"][value="' + card.dataset.time + '"]:checked')) {
+            zeigen = false;
           }
-          if (!trifftZu) zeigeKarte = false;
         }
 
-        // Verfügbarkeit prüfen
-        const verfBoxen = document.querySelectorAll('input[name="availability"]:checked');
-        if (verfBoxen.length > 0) {
-          let trifftZu = false;
-          for (let j = 0; j < verfBoxen.length; j++) {
-            if (verfBoxen[j].value === card.dataset.availability) trifftZu = true;
+        // Verfügbarkeit: Ist eine passende Checkbox aktiv?
+        if (document.querySelectorAll('input[name="availability"]:checked').length > 0) {
+          if (!document.querySelector('input[name="availability"][value="' + card.dataset.availability + '"]:checked')) {
+            zeigen = false;
           }
-          if (!trifftZu) zeigeKarte = false;
         }
 
-        if (zeigeKarte) {
-          card.classList.remove('is-hidden');
+        if (zeigen) {
+          card.style.display = '';
           sichtbar++;
         } else {
-          card.classList.add('is-hidden');
+          card.style.display = 'none';
         }
       }
 
-      countEl.textContent = sichtbar;
+      document.getElementById('visible-count').textContent = sichtbar;
 
       if (sichtbar === 0) {
-        emptyState.classList.add('is-visible');
+        document.getElementById('empty-state').classList.add('is-visible');
       } else {
-        emptyState.classList.remove('is-visible');
+        document.getElementById('empty-state').classList.remove('is-visible');
       }
+    }
+
+    function zuruecksetzen() {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      for (let i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = false;
+      }
+      filtern();
     }
   </script>
 
