@@ -478,29 +478,31 @@
        (bewusst minimal gehalten als Lernvorlage)
   ════════════════════════════════════════════ -->
   <script>
-    // Alle Checkbox-Gruppen einsammeln
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     const cards      = document.querySelectorAll('.event-card');
     const countEl    = document.getElementById('visible-count');
     const emptyState = document.getElementById('empty-state');
     const resetBtn   = document.getElementById('reset-filters');
 
-    // Hilfsfunktion: Alle aktiven Werte einer Gruppe auslesen
-    function getActive(name) {
-      return [...document.querySelectorAll(`input[name="${name}"]:checked`)]
-        .map(cb => cb.value);
-    }
-
-    // Filter anwenden
     function applyFilters() {
-      const activeGenres       = getActive('genre');
-      const activeDays         = getActive('day');
-      const activeTimes        = getActive('time');
-      const activeAvailability = getActive('availability');
+      // Aktive Filter aller vier Gruppen einsammeln
+      const activeGenres        = [];
+      const activeDays          = [];
+      const activeTimes         = [];
+      const activeAvailability  = [];
 
+      checkboxes.forEach(function(cb) {
+        if (!cb.checked) return;
+        if (cb.name === 'genre')        activeGenres.push(cb.value);
+        if (cb.name === 'day')          activeDays.push(cb.value);
+        if (cb.name === 'time')         activeTimes.push(cb.value);
+        if (cb.name === 'availability') activeAvailability.push(cb.value);
+      });
+
+      // Jede Karte prüfen
       let visibleCount = 0;
 
-      cards.forEach(card => {
+      cards.forEach(function(card) {
         const matchGenre = activeGenres.length === 0
           || activeGenres.includes(card.dataset.genre);
 
@@ -513,25 +515,24 @@
         const matchAvailability = activeAvailability.length === 0
           || activeAvailability.includes(card.dataset.availability);
 
-        const isVisible = matchGenre && matchDay && matchTime && matchAvailability;
-
-        card.classList.toggle('is-hidden', !isVisible);
-        if (isVisible) visibleCount++;
+        if (matchGenre && matchDay && matchTime && matchAvailability) {
+          card.classList.remove('is-hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('is-hidden');
+        }
       });
 
-      // Zähler aktualisieren
       countEl.textContent = visibleCount;
-
-      // Leer-Zustand anzeigen
       emptyState.classList.toggle('is-visible', visibleCount === 0);
     }
 
-    // Event Listener auf alle Checkboxen
-    checkboxes.forEach(cb => cb.addEventListener('change', applyFilters));
+    checkboxes.forEach(function(cb) {
+      cb.addEventListener('change', applyFilters);
+    });
 
-    // Filter zurücksetzen
-    resetBtn.addEventListener('click', () => {
-      checkboxes.forEach(cb => cb.checked = false);
+    resetBtn.addEventListener('click', function() {
+      checkboxes.forEach(function(cb) { cb.checked = false; });
       applyFilters();
     });
   </script>
