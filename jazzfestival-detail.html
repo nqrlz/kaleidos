@@ -19,18 +19,18 @@
       <h2>Lineup</h2>
 
       <ul>
-        <li><button onclick="zeigeKuenstler('The Harlem Swingers', 'Swing', 'Freitag, 18:00 · Hauptbühne', 'Eröffnungsabend mit der Kraft des klassischen Big-Band-Swings. Arrangements aus den 1940ern, neu interpretiert für heute.')">The Harlem Swingers</button></li>
-        <li><button onclick="zeigeKuenstler('Calle Caliente Quartet', 'Latin Jazz', 'Freitag, 19:30 · Hafenbühne', 'Afro-kubanische Rhythmen treffen auf modale Harmonik. Heißblütig, mitreißend, unvergesslich.')">Calle Caliente Quartet</button></li>
-        <li><button onclick="zeigeKuenstler('Marcus Bell Trio', 'Bebop', 'Freitag, 21:00 · Hauptbühne', 'Virtuoses Bebop-Piano in der Tradition von Bud Powell und Thelonious Monk.')">Marcus Bell Trio</button></li>
-        <li><button onclick="zeigeKuenstler('Das Kollektiv', 'Free Jazz', 'Freitag, 22:30 · Clubbühne', 'Spätnächtliche Grenzüberschreitung. Sechs Musiker, keine Vorgaben, reine Energie.')">Das Kollektiv</button></li>
-        <li><button onclick="zeigeKuenstler('Elena Voss & Band', 'Smooth Jazz', 'Samstag, 18:00 · Hafenbühne', 'Samtig, elegant und unvermittelt berührend. Elena Voss verarbeitet persönliche Geschichten zu atmosphärischen Kompositionen.')">Elena Voss &amp; Band</button></li>
-        <li><button onclick="zeigeKuenstler('The Blue Note Project', 'Hard Bop', 'Samstag, 19:30 · Hauptbühne', 'Eine Hommage an das goldene Zeitalter des Hard Bop: Art Blakey, Horace Silver und Lee Morgan als Inspiration.')">The Blue Note Project</button></li>
-        <li><button onclick="zeigeKuenstler('Electric Storm', 'Jazz Fusion', 'Samstag, 21:00 · Hauptbühne', 'Hochoktaniger Fusion-Jazz mit Einflüssen aus Funk, Rock und elektronischer Musik.')">Electric Storm</button></li>
-        <li><button onclick="zeigeKuenstler('Noche Brava', 'Latin Jazz', 'Samstag, 22:30 · Hafenbühne', 'Brasilianischer Samba trifft kubanischen Son. Das Septett bringt das Hafengelände zum Tanzen.')">Noche Brava</button></li>
-        <li><button onclick="zeigeKuenstler('Yuki Tanaka Solo', 'Avantgarde', 'Sonntag, 18:00 · Clubbühne', 'Stille und Klang als gleichwertige Partner. Yuki Tanaka erkundet am Flügel die Grenzen zwischen Komposition und Improvisation.')">Yuki Tanaka Solo</button></li>
-        <li><button onclick="zeigeKuenstler('Straight Ahead All-Stars', 'Bebop', 'Sonntag, 19:30 · Hauptbühne', 'Festival-Highlights vereint auf einer Bühne: Sieben Stars der Szene improvisieren gemeinsam über Bebop-Standards.')">Straight Ahead All-Stars</button></li>
-        <li><button onclick="zeigeKuenstler('Orbital Jazz Collective', 'Jazz Fusion', 'Sonntag, 21:00 · Hauptbühne', 'Das Headliner-Konzert des Festivals. Acht Musiker, fünf Kontinente, eine gemeinsame Sprache: Groove.')">Orbital Jazz Collective</button></li>
-        <li><button onclick="zeigeKuenstler('Late Night Jam Session', 'Swing', 'Sonntag, 22:30 · Hafenbühne', 'Festival-Finale: Alle Musiker des Wochenendes kommen noch einmal zusammen. Spontan, ausgelassen, legendär.')">Late Night Jam Session</button></li>
+        <li><button onclick="zeigeKuenstler('harlem')">The Harlem Swingers</button></li>
+        <li><button onclick="zeigeKuenstler('calle')">Calle Caliente Quartet</button></li>
+        <li><button onclick="zeigeKuenstler('marcus')">Marcus Bell Trio</button></li>
+        <li><button onclick="zeigeKuenstler('kollektiv')">Das Kollektiv</button></li>
+        <li><button onclick="zeigeKuenstler('elena')">Elena Voss &amp; Band</button></li>
+        <li><button onclick="zeigeKuenstler('bluenote')">The Blue Note Project</button></li>
+        <li><button onclick="zeigeKuenstler('electric')">Electric Storm</button></li>
+        <li><button onclick="zeigeKuenstler('noche')">Noche Brava</button></li>
+        <li><button onclick="zeigeKuenstler('yuki')">Yuki Tanaka Solo</button></li>
+        <li><button onclick="zeigeKuenstler('allstars')">Straight Ahead All-Stars</button></li>
+        <li><button onclick="zeigeKuenstler('orbital')">Orbital Jazz Collective</button></li>
+        <li><button onclick="zeigeKuenstler('jam')">Late Night Jam Session</button></li>
       </ul>
     </section>
 
@@ -48,11 +48,26 @@
   </footer>
 
   <script>
-    function zeigeKuenstler(name, genre, zeit, info) {
-      document.getElementById('kuenstler-name').textContent = name;
-      document.getElementById('kuenstler-genre').textContent = genre;
-      document.getElementById('kuenstler-zeit').textContent = zeit;
-      document.getElementById('kuenstler-info').textContent = info;
+    const kuenstler = {
+      harlem:   { name: 'The Harlem Swingers',      genre: 'Swing',       zeit: 'Freitag, 18:00 · Hauptbühne', info: 'Eröffnungsabend mit der Kraft des klassischen Big-Band-Swings. Arrangements aus den 1940ern, neu interpretiert für heute.' },
+      calle:    { name: 'Calle Caliente Quartet',    genre: 'Latin Jazz',  zeit: 'Freitag, 19:30 · Hafenbühne', info: 'Afro-kubanische Rhythmen treffen auf modale Harmonik. Heißblütig, mitreißend, unvergesslich.' },
+      marcus:   { name: 'Marcus Bell Trio',          genre: 'Bebop',       zeit: 'Freitag, 21:00 · Hauptbühne', info: 'Virtuoses Bebop-Piano in der Tradition von Bud Powell und Thelonious Monk.' },
+      kollektiv:{ name: 'Das Kollektiv',             genre: 'Free Jazz',   zeit: 'Freitag, 22:30 · Clubbühne',  info: 'Spätnächtliche Grenzüberschreitung. Sechs Musiker, keine Vorgaben, reine Energie.' },
+      elena:    { name: 'Elena Voss & Band',         genre: 'Smooth Jazz', zeit: 'Samstag, 18:00 · Hafenbühne', info: 'Samtig, elegant und unvermittelt berührend. Elena Voss verarbeitet persönliche Geschichten zu atmosphärischen Kompositionen.' },
+      bluenote: { name: 'The Blue Note Project',     genre: 'Hard Bop',    zeit: 'Samstag, 19:30 · Hauptbühne', info: 'Eine Hommage an das goldene Zeitalter des Hard Bop: Art Blakey, Horace Silver und Lee Morgan als Inspiration.' },
+      electric: { name: 'Electric Storm',            genre: 'Jazz Fusion', zeit: 'Samstag, 21:00 · Hauptbühne', info: 'Hochoktaniger Fusion-Jazz mit Einflüssen aus Funk, Rock und elektronischer Musik.' },
+      noche:    { name: 'Noche Brava',               genre: 'Latin Jazz',  zeit: 'Samstag, 22:30 · Hafenbühne', info: 'Brasilianischer Samba trifft kubanischen Son. Das Septett bringt das Hafengelände zum Tanzen.' },
+      yuki:     { name: 'Yuki Tanaka Solo',          genre: 'Avantgarde',  zeit: 'Sonntag, 18:00 · Clubbühne',  info: 'Stille und Klang als gleichwertige Partner. Yuki Tanaka erkundet am Flügel die Grenzen zwischen Komposition und Improvisation.' },
+      allstars: { name: 'Straight Ahead All-Stars',  genre: 'Bebop',       zeit: 'Sonntag, 19:30 · Hauptbühne', info: 'Festival-Highlights vereint auf einer Bühne: Sieben Stars der Szene improvisieren gemeinsam über Bebop-Standards.' },
+      orbital:  { name: 'Orbital Jazz Collective',   genre: 'Jazz Fusion', zeit: 'Sonntag, 21:00 · Hauptbühne', info: 'Das Headliner-Konzert des Festivals. Acht Musiker, fünf Kontinente, eine gemeinsame Sprache: Groove.' },
+      jam:      { name: 'Late Night Jam Session',    genre: 'Swing',       zeit: 'Sonntag, 22:30 · Hafenbühne', info: 'Festival-Finale: Alle Musiker des Wochenendes kommen noch einmal zusammen. Spontan, ausgelassen, legendär.' },
+    };
+
+    function zeigeKuenstler(id) {
+      document.getElementById('kuenstler-name').textContent = kuenstler[id].name;
+      document.getElementById('kuenstler-genre').textContent = kuenstler[id].genre;
+      document.getElementById('kuenstler-zeit').textContent = kuenstler[id].zeit;
+      document.getElementById('kuenstler-info').textContent = kuenstler[id].info;
     }
   </script>
 
