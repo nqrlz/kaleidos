@@ -23,6 +23,14 @@ values.
 * Assigning a truthy value to **clean** inhibits the display of the
 link to Github.
 
+## Bonus: Rubik's Picture Cube
+`rubiks-cube.html` is a self-contained, dependency-free interactive
+Rubik's cube (open the file directly in a browser — no server or
+database needed). Drag the background to rotate the whole cube, drag a
+tile to twist its layer, click a tile (or drop an image file onto it)
+to put your own image on that tile, and use the toolbar to spread one
+image across all nine tiles of a face.
+
 ## Dedication
 Dedicated to [@jeanettehayes](http://twitter.com/jeanettehayes), who I
 thought might like this kind of thing.

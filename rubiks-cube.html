@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rubik's Bilderwürfel</title>
+<style>
+  :root{
+    --bg: #14151a;
+    --panel: #1e2027;
+    --text: #e8e9ee;
+    --muted: #9aa0ae;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  html, body{ height: 100%; }
+  body{
+    background: radial-gradient(1200px 800px at 50% 30%, #23252e, var(--bg));
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  header{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--panel);
+    box-shadow: 0 1px 0 #0006;
+    z-index: 5;
+  }
+  header h1{ font-size: 15px; font-weight: 600; margin-right: 8px; white-space: nowrap; }
+  .facebtns{ display: flex; flex-wrap: wrap; gap: 6px; }
+  .facebtn{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--text);
+    background: #2a2d37;
+    border: 1px solid #3a3e4b;
+    border-radius: 8px;
+    padding: 5px 9px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .facebtn:hover{ background: #333747; }
+  .facebtn .chip{ width: 12px; height: 12px; border-radius: 3px; box-shadow: inset 0 0 0 1px #0004; }
+  .facebtn input{ display: none; }
+  .actions{ display: flex; gap: 6px; margin-left: auto; }
+  button{
+    font: inherit;
+    font-size: 12.5px;
+    color: var(--text);
+    background: #2a2d37;
+    border: 1px solid #3a3e4b;
+    border-radius: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  button:hover{ background: #333747; }
+  .stage{
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1400px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+    overflow: hidden;
+  }
+  .stage.dragging{ cursor: grabbing; }
+  .cube{ position: relative; width: 0; height: 0; transform-style: preserve-3d; }
+  .cubie{ position: absolute; transform-style: preserve-3d; }
+  .face{
+    position: absolute;
+    inset: 0;
+    background: #0d0e12;
+    border-radius: 6px;
+    backface-visibility: hidden;
+  }
+  .sticker{ cursor: pointer; }
+  .decal{
+    position: absolute;
+    inset: 4px;
+    border-radius: 7px;
+    background-color: #666;
+    background-size: cover;
+    background-position: center;
+    box-shadow: inset 0 0 6px #0003, inset 0 0 0 1px #0002;
+    pointer-events: none;
+  }
+  footer{
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--panel);
+    text-align: center;
+  }
+  footer b{ color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Rubik's Bilderwürfel</h1>
+  <div class="facebtns" id="facebtns"></div>
+  <div class="actions">
+    <button id="btnScramble">Mischen</button>
+    <button id="btnReset">Ausrichtung zurücksetzen</button>
+    <button id="btnClear">Bilder entfernen</button>
+  </div>
+</header>
+
+<div class="stage" id="stage">
+  <div class="cube" id="cube"></div>
+</div>
+
+<footer>
+  <b>Kachel anklicken</b> = eigenes Bild für diese Kachel &nbsp;·&nbsp;
+  <b>Kachel ziehen</b> = Ebene drehen &nbsp;·&nbsp;
+  <b>Hintergrund ziehen</b> = ganzen Würfel drehen &nbsp;·&nbsp;
+  Bilddateien können auch direkt auf eine Kachel gezogen werden.
+</footer>
+
+<input type="file" id="tileInput" accept="image/*" hidden>
+
+<script>
+'use strict';
+
+/* ============================== Grundlagen ============================== */
+
+const SIZE = 98;    // Kantenlänge eines Blocks in px
+const STEP = 104;   // Abstand der Blockzentren (SIZE + Fuge)
+
+// Koordinatensystem wie CSS: x nach rechts, y nach unten, z zum Betrachter.
+// col/row bestimmen, welchen 3x3-Ausschnitt eines Seitenbildes eine Kachel
+// zeigt, sodass das Bild auf der Seite aufrecht zusammengesetzt erscheint.
+const FACES = [
+  { name: 'front', label: 'Vorne',  n: [ 0,  0,  1], rot: 'rotateY(0deg)',    color: '#00a74a', col: p => p.x + 1, row: p => p.y + 1 },
+  { name: 'back',  label: 'Hinten', n: [ 0,  0, -1], rot: 'rotateY(180deg)',  color: '#0051ba', col: p => 1 - p.x, row: p => p.y + 1 },
+  { name: 'right', label: 'Rechts', n: [ 1,  0,  0], rot: 'rotateY(90deg)',   color: '#c41e3a', col: p => 1 - p.z, row: p => p.y + 1 },
+  { name: 'left',  label: 'Links',  n: [-1,  0,  0], rot: 'rotateY(-90deg)',  color: '#ff8c00', col: p => p.z + 1, row: p => p.y + 1 },
+  { name: 'up',    label: 'Oben',   n: [ 0, -1,  0], rot: 'rotateX(90deg)',   color: '#f2f2f2', col: p => p.x + 1, row: p => p.z + 1 },
+  { name: 'down',  label: 'Unten',  n: [ 0,  1,  0], rot: 'rotateX(-90deg)',  color: '#ffd500', col: p => p.x + 1, row: p => 1 - p.z },
+];
+
+const stage = document.getElementById('stage');
+const cube  = document.getElementById('cube');
+const tileInput = document.getElementById('tileInput');
+
+const dot   = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+const cross = (a, b) => [ a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0] ];
+
+const rotM   = (axis, deg) => new DOMMatrix().rotateAxisAngleSelf(axis[0], axis[1], axis[2], deg);
+const transM = p => new DOMMatrix().translateSelf(p.x * STEP, p.y * STEP, p.z * STEP);
+
+function cssOf(m){
+  return `matrix3d(${m.m11},${m.m12},${m.m13},${m.m14},${m.m21},${m.m22},${m.m23},${m.m24},` +
+         `${m.m31},${m.m32},${m.m33},${m.m34},${m.m41},${m.m42},${m.m43},${m.m44})`;
+}
+
+function vecOf(m, v){
+  const p = m.transformPoint(new DOMPoint(v[0], v[1], v[2], 0));
+  return [p.x, p.y, p.z];
+}
+
+// Nach jeder 90°-Drehung sind alle Matrixwerte exakt ganzzahlig bzw.
+// STEP-Vielfache — Rundungsfehler werden hier weggeschnappt.
+function snap(m){
+  for (const k of ['m11','m12','m13','m21','m22','m23','m31','m32','m33']) m[k] = Math.round(m[k]);
+  m.m41 = Math.round(m.m41 / STEP) * STEP;
+  m.m42 = Math.round(m.m42 / STEP) * STEP;
+  m.m43 = Math.round(m.m43 / STEP) * STEP;
+}
+
+/* ============================== Würfel bauen ============================== */
+
+const cubies = [];
+const stickers = [];
+
+for (let x = -1; x <= 1; x++)
+for (let y = -1; y <= 1; y++)
+for (let z = -1; z <= 1; z++){
+  if (x === 0 && y === 0 && z === 0) continue;
+
+  const el = document.createElement('div');
+  el.className = 'cubie';
+  el.style.width  = SIZE + 'px';
+  el.style.height = SIZE + 'px';
+  el.style.left = -(SIZE / 2) + 'px';
+  el.style.top  = -(SIZE / 2) + 'px';
+
+  const cubie = { el, p0: { x, y, z }, p: { x, y, z }, m: transM({ x, y, z }) };
+
+  FACES.forEach((face, fi) => {
+    const f = document.createElement('div');
+    f.className = 'face';
+    f.style.transform = `${face.rot} translateZ(${SIZE / 2}px)`;
+    if (dot([x, y, z], face.n) === 1){
+      f.classList.add('sticker');
+      const decal = document.createElement('div');
+      decal.className = 'decal';
+      f.appendChild(decal);
+      const meta = { cubie, faceIdx: fi, col: face.col({ x, y, z }), row: face.row({ x, y, z }), decal, custom: false };
+      f.__meta = meta;
+      stickers.push(meta);
+    }
+    el.appendChild(f);
+  });
+
+  cubies.push(cubie);
+  cube.appendChild(el);
+}
+
+function render(c){ c.el.style.transform = cssOf(c.m); }
+
+function defaultDecal(meta){
+  meta.decal.style.backgroundImage = 'none';
+  meta.decal.style.backgroundColor = FACES[meta.faceIdx].color;
+  meta.custom = false;
+}
+
+stickers.forEach(defaultDecal);
+cubies.forEach(render);
+
+/* ============================== Ansicht (Orbit) ============================== */
+
+let rx = -28, ry = -36, viewScale = 1;
+
+function applyView(){
+  cube.style.transform = `scale(${viewScale}) rotateX(${rx}deg) rotateY(${ry}deg)`;
+}
+
+function viewMatrix(){
+  return rotM([1, 0, 0], rx).multiply(rotM([0, 1, 0], ry));
+}
+
+function updateScale(){
+  const r = stage.getBoundingClientRect();
+  viewScale = Math.max(0.35, Math.min(1.25, Math.min(r.width, r.height) / 560));
+  applyView();
+}
+window.addEventListener('resize', updateScale);
+updateScale();
+
+/* ============================== Ebenen-Drehungen ============================== */
+
+let animating = false;
+let generation = 0;           // entwertet laufende Animationen bei Reset
+const queue = [];
+
+function enqueueMove(axis, layer, angle, dur){
+  queue.push({ axis, layer, angle, dur, gen: generation });
+  pump();
+}
+
+function pump(){
+  if (animating) return;
+  const mv = queue.shift();
+  if (!mv) return;
+  animating = true;
+
+  const affected = cubies.filter(c =>
+    Math.round(c.p.x * mv.axis[0] + c.p.y * mv.axis[1] + c.p.z * mv.axis[2]) === mv.layer);
+
+  const t0 = performance.now();
+  function frame(now){
+    if (mv.gen !== generation) return;   // Reset hat die Animation entwertet
+    const t = Math.min(1, (now - t0) / mv.dur);
+    const e = 1 - Math.pow(1 - t, 3);
+    const R = rotM(mv.axis, mv.angle * e);
+    for (const c of affected) c.el.style.transform = cssOf(R.multiply(c.m));
+    if (t < 1){
+      requestAnimationFrame(frame);
+    } else {
+      const Rf = rotM(mv.axis, mv.angle);
+      for (const c of affected){
+        c.m = Rf.multiply(c.m);
+        snap(c.m);
+        c.p = { x: Math.round(c.m.m41 / STEP), y: Math.round(c.m.m42 / STEP), z: Math.round(c.m.m43 / STEP) };
+        render(c);
+      }
+      animating = false;
+      pump();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// Aus einer Wischgeste auf einer Kachel die passende Ebenen-Drehung ableiten:
+// unter den vier möglichen Drehungen (2 Achsen x 2 Richtungen) gewinnt die,
+// deren Bewegungsrichtung auf dem Bildschirm der Geste am besten entspricht.
+function decideTwist(meta, dx, dy){
+  const c = meta.cubie;
+  const n = vecOf(c.m, FACES[meta.faceIdx].n).map(Math.round);
+  const axes = [[1,0,0],[0,1,0],[0,0,1]].filter(a => Math.abs(dot(a, n)) < 0.5);
+  const V = viewMatrix();
+
+  let best = null;
+  for (const a of axes){
+    for (const s of [1, -1]){
+      const dir = cross([a[0]*s, a[1]*s, a[2]*s], n);
+      const sv = vecOf(V, dir);
+      const score = sv[0]*dx + sv[1]*dy;
+      if (!best || score > best.score) best = { score, axis: a, sign: s };
+    }
+  }
+
+  const layer = Math.round(c.p.x*best.axis[0] + c.p.y*best.axis[1] + c.p.z*best.axis[2]);
+  enqueueMove(best.axis, layer, 90 * best.sign, 200);
+}
+
+/* ============================== Maus / Touch ============================== */
+
+let drag = null;
+
+stage.addEventListener('pointerdown', e => {
+  if (drag) return;
+  e.preventDefault();
+  const stickerEl = e.target.closest('.sticker');
+  drag = {
+    id: e.pointerId,
+    x0: e.clientX, y0: e.clientY,
+    lx: e.clientX, ly: e.clientY,
+    meta: stickerEl ? stickerEl.__meta : null,
+    mode: null,
+  };
+  stage.setPointerCapture(e.pointerId);
+  stage.classList.add('dragging');
+});
+
+stage.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dx = e.clientX - drag.x0;
+  const dy = e.clientY - drag.y0;
+
+  if (!drag.mode){
+    if (Math.hypot(dx, dy) < 8) return;
+    if (drag.meta){
+      drag.mode = 'twist';
+      if (!animating && queue.length === 0) decideTwist(drag.meta, dx, dy);
+      return;
+    }
+    drag.mode = 'orbit';
+  }
+
+  if (drag.mode === 'orbit'){
+    ry += (e.clientX - drag.lx) * 0.4;
+    rx -= (e.clientY - drag.ly) * 0.4;
+    applyView();
+  }
+  drag.lx = e.clientX;
+  drag.ly = e.clientY;
+});
+
+function endDrag(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.mode && drag.meta){
+    // Klick ohne Ziehen: Bild für genau diese Kachel wählen
+    tileTarget = drag.meta;
+    tileInput.click();
+  }
+  drag = null;
+  stage.classList.remove('dragging');
+}
+stage.addEventListener('pointerup', endDrag);
+stage.addEventListener('pointercancel', endDrag);
+
+/* ============================== Bilder ============================== */
+
+let tileTarget = null;
+
+function readAsDataURL(file, cb){
+  if (!file || !file.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = () => cb(r.result);
+  r.readAsDataURL(file);
+}
+
+function applyTileImage(meta, url){
+  meta.decal.style.backgroundColor = '#111';
+  meta.decal.style.backgroundImage = `url("${url}")`;
+  meta.decal.style.backgroundSize = 'cover';
+  meta.decal.style.backgroundPosition = 'center';
+  meta.custom = true;
+}
+
+// Ein Bild wird in 3x3 Ausschnitte zerlegt; jede Kachel der Seite zeigt
+// ihren Ausschnitt und nimmt ihn beim Drehen mit (wie ein echter Bilderwürfel).
+function applyFaceImage(faceIdx, url){
+  for (const meta of stickers){
+    if (meta.faceIdx !== faceIdx) continue;
+    meta.decal.style.backgroundColor = '#111';
+    meta.decal.style.backgroundImage = `url("${url}")`;
+    meta.decal.style.backgroundSize = '300% 300%';
+    meta.decal.style.backgroundPosition = `${meta.col * 50}% ${meta.row * 50}%`;
+    meta.custom = false;
+  }
+}
+
+tileInput.addEventListener('change', () => {
+  const file = tileInput.files[0];
+  tileInput.value = '';
+  if (tileTarget) readAsDataURL(file, url => applyTileImage(tileTarget, url));
+});
+
+// Bilddatei direkt auf eine Kachel ziehen
+stage.addEventListener('dragover', e => e.preventDefault());
+stage.addEventListener('drop', e => {
+  e.preventDefault();
+  const stickerEl = e.target.closest('.sticker');
+  if (!stickerEl) return;
+  readAsDataURL(e.dataTransfer.files[0], url => applyTileImage(stickerEl.__meta, url));
+});
+
+/* ============================== Toolbar ============================== */
+
+const facebtns = document.getElementById('facebtns');
+FACES.forEach((face, fi) => {
+  const label = document.createElement('label');
+  label.className = 'facebtn';
+  label.title = `Bild für Seite „${face.label}“ wählen (wird in 3×3 Kacheln zerlegt)`;
+
+  const chip = document.createElement('span');
+  chip.className = 'chip';
+  chip.style.background = face.color;
+
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.addEventListener('change', () => {
+    readAsDataURL(input.files[0], url => applyFaceImage(fi, url));
+    input.value = '';
+  });
+
+  label.append(chip, document.createTextNode(face.label), input);
+  facebtns.appendChild(label);
+});
+
+document.getElementById('btnScramble').addEventListener('click', () => {
+  if (animating || queue.length) return;
+  const AXES = [[1,0,0],[0,1,0],[0,0,1]];
+  for (let i = 0; i < 22; i++){
+    const axis = AXES[Math.floor(Math.random() * 3)];
+    const layer = Math.floor(Math.random() * 3) - 1;
+    const sign = Math.random() < 0.5 ? 1 : -1;
+    enqueueMove(axis, layer, 90 * sign, 100);
+  }
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  generation++;
+  queue.length = 0;
+  animating = false;
+  for (const c of cubies){
+    c.m = transM(c.p0);
+    c.p = { ...c.p0 };
+    render(c);
+  }
+});
+
+document.getElementById('btnClear').addEventListener('click', () => {
+  stickers.forEach(defaultDecal);
+});
+</script>
+</body>
+</html>
